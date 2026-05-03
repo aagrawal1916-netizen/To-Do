@@ -180,6 +180,15 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .modal textarea{resize:vertical;min-height:60px;line-height:1.4}
 .state-select{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23667781' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
 .state-select:focus{border-color:var(--wteal)}
+.bulk-review-modal{max-height:92dvh;display:flex;flex-direction:column}
+.bulk-review-list{overflow-y:auto;margin:4px -4px 0;padding:0 4px 2px}
+.bulk-review-item{background:#f7f8fa;border:1px solid #e5e7eb;border-radius:8px;padding:10px;margin-bottom:8px}
+.bulk-review-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.bulk-review-num{width:22px;height:22px;border-radius:50%;background:var(--wteal);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bulk-review-text{flex:1;border:1.5px solid #ddd;border-radius:8px;padding:8px 10px;font-size:14px;font-family:inherit;outline:none;background:#fff;color:#111;min-width:0}
+.bulk-review-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.bulk-review-grid .state-select,.bulk-review-grid input,.bulk-review-grid select{min-width:0;font-size:13px;padding:8px 10px;border:1.5px solid #ddd;border-radius:8px;background:#fff;color:#111;font-family:inherit;outline:none}
+.bulk-review-grid .state-select{padding-right:30px;background-position:right 10px center}
 .modal-row{display:flex;gap:8px;margin-top:8px}
 .modal-row .qr{flex:1;justify-content:center}
 .modal-btns{display:flex;gap:8px;margin-top:18px}
@@ -460,6 +469,20 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
     </div>
   </div>
 
+  <!-- Bulk review modal -->
+  <div class="modal-bg" id="bulk-review-modal">
+    <div class="modal bulk-review-modal">
+      <h3>Review tasks</h3>
+      <p id="bulk-review-sub">Check what TaskDump guessed before saving.</p>
+      <div class="bulk-review-list" id="bulk-review-list"></div>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="continueBulkReview()">Ask me</button>
+        <button class="modal-btn secondary" onclick="closeBulkReview()">Cancel</button>
+        <button class="modal-btn primary" onclick="saveBulkReview()">Save All</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Quick add task modal (calendar) -->
   <div class="modal-bg" id="quickadd-modal">
     <div class="modal">
@@ -536,6 +559,7 @@ if('serviceWorker' in navigator){
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Utils â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const attr=s=>esc(s).replace(/"/g,'&quot;');
 const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
 const ticks=(r)=>`<svg viewBox="0 0 16 11" fill="none"><path d="M1 5.5l3.5 3.5L11 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5l3.5 3.5L15 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const uid=()=>Date.now()+'_'+Math.random().toString(36).slice(2,8);
@@ -904,7 +928,7 @@ function handleReply(value,label){
     }
 
     // Phase 2: If shortcuts fully specify the task, skip the chat flow entirely
-    if(sharedShortcuts && definiteTasks.length && !unsure.length){
+    if(sharedShortcuts && definiteTasks.length===1 && !unsure.length){
       // Check if everything is set (category, priority, and state via shortcuts; due is optional)
       const fullyDefined = sh.category && sh.priority && sh.state;
       if(fullyDefined){
@@ -944,7 +968,7 @@ function handleReply(value,label){
       const nl=definiteNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px">ðŸ“ ${esc(n)}</div>`).join('');
       addMsg(`Saved <b>${definiteNotes.length} note${definiteNotes.length>1?'s':''}</b>:<div style="margin:5px 0 2px">${nl}</div>`);
     }
-    startTaskFlow();
+    beginPendingFlow();
 
   } else if(step.type==='classify'){
     addMsg(label,'user');
@@ -958,7 +982,7 @@ function handleReply(value,label){
     }
     step.idx++;
     if(step.idx<step.unsure.length){askClassify();}
-    else{updateSub();if(!pending.length){addMsg('âœ… Done! Notes saved.');step=null;return;}startTaskFlow();}
+    else{updateSub();if(!pending.length){addMsg('âœ… Done! Notes saved.');step=null;return;}beginPendingFlow();}
 
   } else if(step.type==='bulk_due'){
     addMsg(label,'user');
@@ -1090,6 +1114,100 @@ function askClassify(){
     {l:'ðŸ“ Just a note',v:'note',c:'gr'},
     {l:'Skip',v:'skip',c:'gr'},
   ]),30);
+}
+
+function beginPendingFlow(){
+  if(pending.length>1) openBulkReview();
+  else startTaskFlow();
+}
+
+function openBulkReview(){
+  if(!pending.length) return;
+  rmQR();
+  step={type:'bulk_review'};
+  document.getElementById('bulk-review-sub').textContent=`${pending.length} tasks found. Edit any guess, then save all or continue with questions.`;
+  renderBulkReview();
+  document.getElementById('bulk-review-modal').classList.add('open');
+}
+
+function renderBulkReview(){
+  const list=document.getElementById('bulk-review-list');
+  list.innerHTML='';
+  pending.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='bulk-review-item';
+    row.dataset.idx=i;
+    row.innerHTML=`
+      <div class="bulk-review-top">
+        <div class="bulk-review-num">${i+1}</div>
+        <input class="bulk-review-text" data-field="text" value="${attr(t.text)}"/>
+      </div>
+      <div class="bulk-review-grid">
+        <input type="date" data-field="due" value="${attr(t.due||'')}"/>
+        <select data-field="category">
+          <option value="">No category</option>
+          <option value="work">Work</option>
+          <option value="personal">Personal</option>
+        </select>
+        <select class="state-select" data-field="state">
+          <option value="">No state</option>
+        </select>
+        <select data-field="priority">
+          <option value="high">High</option>
+          <option value="med">Medium</option>
+          <option value="low">Low</option>
+        </select>
+      </div>`;
+    list.appendChild(row);
+    row.querySelector('[data-field="category"]').value=t.category||'';
+    row.querySelector('[data-field="priority"]').value=t.priority||'med';
+    const stateSel=row.querySelector('[data-field="state"]');
+    populateStateSelect(stateSel);
+    if(t.state&&![...stateSel.options].some(opt=>opt.value===t.state)){
+      const opt=document.createElement('option');
+      opt.value=t.state;opt.textContent=t.state;
+      stateSel.appendChild(opt);
+    }
+    stateSel.value=t.state||'';
+  });
+}
+
+function syncBulkReview(){
+  const rows=document.querySelectorAll('#bulk-review-list .bulk-review-item');
+  const next=[];
+  rows.forEach(row=>{
+    const task={
+      text:row.querySelector('[data-field="text"]').value.trim(),
+      due:row.querySelector('[data-field="due"]').value||'',
+      category:row.querySelector('[data-field="category"]').value||'',
+      state:row.querySelector('[data-field="state"]').value||'',
+      priority:row.querySelector('[data-field="priority"]').value||'med',
+      recur:pending[Number(row.dataset.idx)]?.recur||''
+    };
+    if(task.text) next.push(task);
+  });
+  pending=next;
+  return pending.length>0;
+}
+
+function closeBulkReview(){
+  document.getElementById('bulk-review-modal').classList.remove('open');
+  pending=[];step=null;
+  addMsg('Bulk review cancelled. Drop the tasks again when you are ready.');
+}
+
+function continueBulkReview(){
+  if(!syncBulkReview()){showToast('Keep at least one task');return;}
+  document.getElementById('bulk-review-modal').classList.remove('open');
+  step=null;
+  startTaskFlow();
+}
+
+function saveBulkReview(){
+  if(!syncBulkReview()){showToast('Keep at least one task');return;}
+  document.getElementById('bulk-review-modal').classList.remove('open');
+  step=null;
+  finishFlow();
 }
 
 function startTaskFlow(){
