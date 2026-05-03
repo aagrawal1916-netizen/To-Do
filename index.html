@@ -842,7 +842,7 @@ function parseDump(t){
 /* ─────────── Main flow ─────────── */
 function sendMsg(){
   const t=inp.value.trim();
-  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat'||step.type==='priority'||step.type==='bulk_prio')){
+  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat'||step.type==='state'||step.type==='state_only'||step.type==='bulk_state'||step.type==='priority'||step.type==='priority_only'||step.type==='bulk_prio')){
     rmQR();handleReply('skip','Skip');return;
   }
   if(!t)return;
@@ -891,8 +891,8 @@ function handleReply(value,label){
 
     // Phase 2: If shortcuts fully specify the task, skip the chat flow entirely
     if(sharedShortcuts && definiteTasks.length && !unsure.length){
-      // Check if everything is set (have category AND priority via shortcuts, due is optional)
-      const fullyDefined = sh.category && sh.priority;
+      // Check if everything is set (category, priority, and state via shortcuts; due is optional)
+      const fullyDefined = sh.category && sh.priority && sh.state;
       if(fullyDefined){
         definiteTasks.forEach(t=>tasks.push({...t, done:false, id:uid(), createdAt:Date.now()}));
         saveAll();updateSub();
@@ -901,6 +901,7 @@ function handleReply(value,label){
             <span class="sname">${esc(t.text)}</span>
             <span class="sright">
               ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'⚡':''}${t.priority}</span>`:''}
+              ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781">📍 ${esc(t.state)}</span>`:''}
               ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
               <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
             </span>
@@ -936,7 +937,7 @@ function handleReply(value,label){
     const cur=step.unsure[step.idx];
     if(value==='task'){
       const d=extractDate(cur);
-      pending.push({text:d.text, due:d.due||'', category:'', priority:'med'});
+      pending.push({text:d.text, due:d.due||'', category:'', priority:'med', state:''});
     } else if(value==='note'){
       notes.push({text:cur, id:uid(), at:new Date().toISOString()});
       saveAll();
@@ -972,17 +973,36 @@ function handleReply(value,label){
       setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
     } else if(value==='skip'){
       pending.forEach(t=>t.category='');
-      askBulkPriority();
+      askBulkState();
     } else {
       pending.forEach(t=>t.category=value);
+      askBulkState();
+    }
+
+  } else if(step.type==='bulk_state'){
+    addMsg(label,'user');
+    if(value==='individual'){
+      step={type:'state_only',idx:0};
+      askIndivState(0);
+    } else if(value==='keep'||value==='skip'){
+      if(value==='skip') pending.forEach(t=>{t.state=t.state||'';});
+      askBulkPriority();
+    } else {
+      const state=resolveStateReply(value,label);
+      pending.forEach(t=>t.state=state);
       askBulkPriority();
     }
 
   } else if(step.type==='bulk_prio'){
     addMsg(label,'user');
-    const v=value==='skip'?'med':value;
-    pending.forEach(t=>t.priority=v);
-    finishFlow();
+    if(value==='individual'){
+      step={type:'priority_only',idx:0};
+      askIndivPrio(0);
+    } else {
+      const v=value==='skip'?'med':value;
+      pending.forEach(t=>t.priority=v);
+      finishFlow();
+    }
 
   } else if(step.type==='due'){
     addMsg(label,'user');
@@ -1006,8 +1026,24 @@ function handleReply(value,label){
     addMsg(label,'user');
     pending[step.idx].category=(value==='skip'?'':value);
     const i=step.idx;
+    step={type:'state',idx:i};
+    setTimeout(()=>askIndivState(i),200);
+
+  } else if(step.type==='state'){
+    addMsg(label,'user');
+    pending[step.idx].state=(value==='skip'?'':resolveStateReply(value,label));
+    const i=step.idx;
     step={type:'priority',idx:i};
     setTimeout(()=>askIndivPrio(i),200);
+
+  } else if(step.type==='state_only'){
+    addMsg(label,'user');
+    pending[step.idx].state=(value==='skip'?'':resolveStateReply(value,label));
+    const next=step.idx+1;
+    if(next<pending.length){
+      step={type:'state_only',idx:next};
+      setTimeout(()=>askIndivState(next),200);
+    } else {askBulkPriority();}
 
   } else if(step.type==='priority'){
     addMsg(label,'user');
@@ -1019,6 +1055,15 @@ function handleReply(value,label){
         addMsg(`<b>${esc(pending[next].text)}</b> — when is it due?${pending[next].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[next].due)+'</span>':''}`);
         setTimeout(()=>addQR(dateOpts()),30);
       },200);
+    } else {finishFlow();}
+
+  } else if(step.type==='priority_only'){
+    addMsg(label,'user');
+    pending[step.idx].priority=(value==='skip'?'med':value);
+    const next=step.idx+1;
+    if(next<pending.length){
+      step={type:'priority_only',idx:next};
+      setTimeout(()=>askIndivPrio(next),200);
     } else {finishFlow();}
   }
 }
@@ -1073,15 +1118,62 @@ function afterBulkDue(){
   setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
 }
 
+function stateOpts(includeKeep){
+  const opts=[];
+  if(includeKeep&&pending.some(t=>t.state)){
+    opts.push({l:'Keep detected',v:'keep',c:'g'});
+  }
+  opts.push(
+    {l:'MP',v:'Madhya Pradesh',c:'gr'},
+    {l:'CG',v:'Chhattisgarh',c:'gr'},
+    {l:'MH',v:'Maharashtra',c:'gr'},
+    {l:'GJ',v:'Gujarat',c:'gr'},
+    {l:'UP',v:'Uttar Pradesh',c:'gr'},
+    {l:'Set one by one',v:'individual',c:'gr'},
+    {l:'Skip ›',v:'skip',c:'gr'}
+  );
+  return opts;
+}
+
+function resolveStateReply(value,label){
+  if(value==='skip'||value==='keep'||value==='individual') return '';
+  const raw=String(value||label||'').trim();
+  const norm=raw.toLowerCase().replace(/[^\w\s.]/g,'').replace(/\s+/g,' ').trim();
+  return STATE_HEADER_MAP[norm]||raw;
+}
+
+function askBulkState(){
+  step={type:'bulk_state'};
+  const detected=sortedTaskStates(pending.filter(t=>t.state));
+  const hint=detected.length?`<br><span style="font-size:12px;color:#888">Detected: ${detected.map(esc).join(', ')}</span>`:'';
+  addMsg(`State / region for these tasks?${hint}<br><span style="font-size:12px;color:#888">You can also type a state name or short code like MP, MH, UP.</span>`);
+  setTimeout(()=>addQR(stateOpts(true)),30);
+}
+
 function askBulkPriority(){
   step={type:'bulk_prio'};
   addMsg('Priority?');
-  setTimeout(()=>addQR([{l:'⚡ High',v:'high',c:'r'},{l:'Medium',v:'med',c:'o'},{l:'Low',v:'low',c:'g'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+  setTimeout(()=>addQR([{l:'⚡ High — all',v:'high',c:'r'},{l:'Medium — all',v:'med',c:'o'},{l:'Low — all',v:'low',c:'g'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
 }
 
 function askIndivCat(i){
   addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
   setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+}
+
+function askIndivState(i){
+  const cur=pending[i];
+  const detected=cur.state?'<br><span style="font-size:12px;color:#888">Detected: '+esc(cur.state)+'</span>':'';
+  addMsg(`State / region for <b>${esc(cur.text)}</b>?${detected}<br><span style="font-size:12px;color:#888">Type a state name/code, or pick one below.</span>`);
+  setTimeout(()=>addQR([
+    ...(cur.state?[{l:'Keep '+cur.state,v:cur.state,c:'g'}]:[]),
+    {l:'MP',v:'Madhya Pradesh',c:'gr'},
+    {l:'CG',v:'Chhattisgarh',c:'gr'},
+    {l:'MH',v:'Maharashtra',c:'gr'},
+    {l:'GJ',v:'Gujarat',c:'gr'},
+    {l:'UP',v:'Uttar Pradesh',c:'gr'},
+    {l:'Skip ›',v:'skip',c:'gr'},
+  ]),30);
 }
 
 function askIndivPrio(i){
