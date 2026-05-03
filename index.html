@@ -138,6 +138,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .tdate.overdue{color:var(--whigh)}.tdate.today{color:var(--wmed)}
 .tprio{font-size:11px;font-weight:600}
 .tprio.high{color:var(--whigh)}.tprio.med{color:var(--wmed)}.tprio.low{color:var(--wlow)}
+.tstate{font-size:11px;color:var(--wmuted);background:#f0f2f5;padding:1px 7px;border-radius:20px;font-weight:500}
 .pline{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0}
 .pline.high{background:var(--whigh)}.pline.med{background:var(--wmed)}.pline.low{background:var(--wlow)}
 .tempty{padding:48px 20px;text-align:center;color:var(--wmuted);font-size:14px;line-height:1.6}
@@ -176,6 +177,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .modal input[type=text],.modal textarea,.modal input[type=date]{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff}
 .modal input:focus,.modal textarea:focus{border-color:var(--wteal)}
 .modal textarea{resize:vertical;min-height:60px;line-height:1.4}
+.state-select{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23667781' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
+.state-select:focus{border-color:var(--wteal)}
 .modal-row{display:flex;gap:8px;margin-top:8px}
 .modal-row .qr{flex:1;justify-content:center}
 .modal-btns{display:flex;gap:8px;margin-top:18px}
@@ -281,6 +284,14 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 .cal-day-panel-h{font-size:13px;font-weight:600;color:#111;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
 .cal-day-panel-h .free-label{font-size:12px;color:var(--wlow);font-weight:600}
 .cal-day-panel-h .busy-label{font-size:12px;color:var(--whigh);font-weight:600}
+
+/* + add button on calendar */
+.cal-add-btn{display:flex;align-items:center;justify-content:center;gap:6px;background:var(--wteal);color:#fff;border-radius:8px;padding:9px 14px;font-size:14px;font-weight:600;cursor:pointer;margin-top:10px;box-shadow:0 2px 4px rgba(37,211,102,.3)}
+.cal-add-btn:active{opacity:.85;transform:scale(.98)}
+.cal-add-btn svg{flex-shrink:0}
+.cal-week-add{width:28px;height:28px;border-radius:50%;background:#e8f5e9;color:var(--wgl);display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:300;cursor:pointer;flex-shrink:0;line-height:0;border:none;padding:0;margin-left:6px}
+.cal-week-add:active{background:#c8e6c9}
+.cal-week-head-right{display:flex;align-items:center;gap:8px}
 </style>
 </head>
 <body>
@@ -397,6 +408,10 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
         <div class="qr g" data-rep="weekly" onclick="pickEditRep(this)">Weekly</div>
         <div class="qr g" data-rep="monthly" onclick="pickEditRep(this)">Monthly</div>
       </div>
+      <label>State / region</label>
+      <select id="edit-state" class="state-select">
+        <option value="">— None —</option>
+      </select>
       <div class="modal-btns">
         <button class="modal-btn danger" onclick="deleteTaskFromEdit()">Delete</button>
         <button class="modal-btn secondary" onclick="closeEdit()">Cancel</button>
@@ -438,6 +453,36 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
       <div class="modal-btns">
         <button class="modal-btn secondary" onclick="closeConfirm()">Cancel</button>
         <button class="modal-btn danger" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick add task modal (calendar) -->
+  <div class="modal-bg" id="quickadd-modal">
+    <div class="modal">
+      <h3 id="quickadd-title">Add task</h3>
+      <p id="quickadd-sub" style="margin-bottom:12px"></p>
+      <label>Task</label>
+      <textarea id="quickadd-text" rows="2" placeholder="What's the task?"></textarea>
+      <label>Category</label>
+      <div class="modal-row">
+        <div class="qr b" data-qcat="work" onclick="pickQA(this,'qcat')">💼 Work</div>
+        <div class="qr p" data-qcat="personal" onclick="pickQA(this,'qcat')">🏠 Personal</div>
+        <div class="qr gr" data-qcat="" onclick="pickQA(this,'qcat')">None</div>
+      </div>
+      <label>Priority</label>
+      <div class="modal-row">
+        <div class="qr r" data-qprio="high" onclick="pickQA(this,'qprio')">⚡ High</div>
+        <div class="qr o" data-qprio="med" onclick="pickQA(this,'qprio')">Med</div>
+        <div class="qr g" data-qprio="low" onclick="pickQA(this,'qprio')">Low</div>
+      </div>
+      <label>State / region</label>
+      <select id="quickadd-state" class="state-select">
+        <option value="">— None —</option>
+      </select>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="closeQuickAdd()">Cancel</button>
+        <button class="modal-btn primary" onclick="saveQuickAdd()">Add</button>
       </div>
     </div>
   </div>
@@ -534,6 +579,36 @@ const rmQR=()=>{const q=document.getElementById('qr-active');if(q)q.remove();};
 
 /* ─────────── Date helpers ─────────── */
 const isoToday=()=>new Date().toISOString().split('T')[0];
+
+/* States — limited list */
+const IN_REGIONS = [
+  {zone:'Central',  states:['Madhya Pradesh','Chhattisgarh']},
+  {zone:'Eastern',  states:['Bihar','Jharkhand','Odisha','West Bengal']},
+  {zone:'Western',  states:['Goa','Gujarat','Maharashtra']},
+  {zone:'North-Eastern', states:['Assam','Manipur','Meghalaya','Sikkim','Tripura']},
+  {zone:'Other',    states:['Other Indian state','Outside India']},
+];
+
+function populateStateSelect(selectEl){
+  if(!selectEl||selectEl.dataset.populated==='1') return;
+  IN_REGIONS.forEach(grp=>{
+    const og=document.createElement('optgroup');
+    og.label=grp.zone+' India';
+    grp.states.forEach(s=>{
+      const opt=document.createElement('option');
+      opt.value=s;opt.textContent=s;
+      og.appendChild(opt);
+    });
+    selectEl.appendChild(og);
+  });
+  selectEl.dataset.populated='1';
+}
+
+// Populate both selects on load
+['edit-state','quickadd-state'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) populateStateSelect(el);
+});
 const isoOff=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];};
 const isoWeekday=(n)=>{const d=new Date();const diff=(n-d.getDay()+7)%7||7;d.setDate(d.getDate()+diff);return d.toISOString().split('T')[0];};
 function fmtDate(iso){
@@ -622,16 +697,19 @@ function extractDate(text){
 /* ─────────── Classifier ─────────── */
 function classify(s){
   const lower=s.toLowerCase().trim();
-  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|remind|ask|tell|share|upload|download|install|setup|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop)\b/i;
+  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|remind|ask|tell|share|upload|download|install|setup|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop|go|visit|find|talk|train|practice|practise|workout|exercise|run|walk|drive|drop\sof|drop\soff|hire|fire|launch|ship|publish|upload|deploy|test|debug|configure|migrate|backup)\b/i;
   const taskHints=/(need to|have to|gotta|must|should|to-?do|reminder|deadline|by\s(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|next|this))/i;
-  const noteHints=/^(my |the |password|wifi|address|phone|email is|account|username|note:|fyi|info:|remember:|btw|note that|just so)/i;
-  const noteFacts=/\b(is|are|was|were)\s/i;
+  const noteHints=/^(my |the |password|wifi|address|phone|email is|account|username|note:|fyi|info:|remember:|btw|note that|just so|password is|pin is|otp|key:)/i;
   const looksLikeData=/^(\+?\d[\d\-\s]{5,}|[a-zA-Z0-9_]{8,}@|https?:\/\/|wifi|pwd|pin|code|otp)/i;
-  if(taskVerbs.test(s)||taskHints.test(s))return 'task';
-  if(noteHints.test(s)||looksLikeData.test(s))return 'note';
-  if(s.split(/\s+/).length<=4)return 'task';
-  if(noteFacts.test(s)&&!taskVerbs.test(s))return 'note';
-  return 'unsure';
+
+  if(taskVerbs.test(s)||taskHints.test(s)) return 'task';
+  if(noteHints.test(s)||looksLikeData.test(s)) return 'note';
+  // Default short-ish items to task — most dumps are tasks, not notes
+  if(s.split(/\s+/).length<=8) return 'task';
+  // Long sentence with "is/are/was" early on → note (factual statement)
+  if(/^[A-Za-z\s]{0,30}\b(is|are|was|were)\s/i.test(s)) return 'note';
+  // Otherwise default to task
+  return 'task';
 }
 
 function parseDump(t){
@@ -993,7 +1071,8 @@ function createTaskCard(t){
   const catBit=t.category?`<span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>`:'';
   const dateBit=t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:'';
   const recBit=t.recur?`<span class="recur-badge">🔁 ${t.recur}</span>`:'';
-  const meta=(prioBit||catBit||dateBit||recBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}${recBit}</div>`:'';
+  const stateBit=t.state?`<span class="tstate">📍 ${esc(t.state)}</span>`:'';
+  const meta=(prioBit||catBit||dateBit||recBit||stateBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}${recBit}${stateBit}</div>`:'';
   c.innerHTML=`
     <div class="pline ${t.priority||'med'}"></div>
     <div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -1086,6 +1165,7 @@ function openEdit(id){
   editingTaskId=id;
   document.getElementById('edit-text').value=t.text;
   document.getElementById('edit-date').value=t.due||'';
+  document.getElementById('edit-state').value=t.state||'';
   document.querySelectorAll('#edit-modal [data-cat]').forEach(b=>{
     b.style.opacity=(b.dataset.cat===(t.category||''))?'1':'.4';
     b.style.background=(b.dataset.cat===(t.category||''))?'#f0f7ff':'#fff';
@@ -1119,6 +1199,7 @@ function saveEdit(){
   const t=tasks.find(x=>x.id===editingTaskId); if(!t)return;
   t.text=document.getElementById('edit-text').value.trim()||t.text;
   t.due=document.getElementById('edit-date').value||'';
+  t.state=document.getElementById('edit-state').value||'';
   const catSel=document.querySelector('#edit-modal [data-cat][style*="opacity: 1"]');
   const prioSel=document.querySelector('#edit-modal [data-prio][style*="opacity: 1"]');
   const repSel=document.querySelector('#edit-modal [data-rep][style*="opacity: 1"]');
@@ -1501,6 +1582,80 @@ document.getElementById('import-input').addEventListener('change', e=>{
   reader.readAsText(file);
 });
 
+/* ─────────── Calendar quick-add ─────────── */
+let quickAddDate=null;
+
+function openQuickAdd(iso){
+  quickAddDate=iso;
+  const d=new Date(iso+'T00:00:00');
+  const today=isoToday();
+  const diff=Math.round((d-new Date(today+'T00:00:00'))/86400000);
+  let label=d.toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'});
+  if(diff===0) label+=' · Today';
+  else if(diff===1) label+=' · Tomorrow';
+  else if(diff===-1) label+=' · Yesterday';
+
+  document.getElementById('quickadd-title').textContent='Add task';
+  document.getElementById('quickadd-sub').textContent=label;
+  document.getElementById('quickadd-text').value='';
+  // reset selections — default: no category, med priority
+  document.querySelectorAll('#quickadd-modal [data-qcat]').forEach(b=>{
+    const sel=b.dataset.qcat==='';
+    b.style.opacity=sel?'1':'.4';b.style.background=sel?'#f0f7ff':'#fff';
+  });
+  document.querySelectorAll('#quickadd-modal [data-qprio]').forEach(b=>{
+    const sel=b.dataset.qprio==='med';
+    b.style.opacity=sel?'1':'.4';b.style.background=sel?'#fff5e6':'#fff';
+  });
+  document.getElementById('quickadd-state').value='';
+  document.getElementById('quickadd-modal').classList.add('open');
+  setTimeout(()=>document.getElementById('quickadd-text').focus(),120);
+}
+
+function closeQuickAdd(){
+  document.getElementById('quickadd-modal').classList.remove('open');
+  quickAddDate=null;
+}
+
+function pickQA(el,kind){
+  const sel=kind==='qcat'?'[data-qcat]':'[data-qprio]';
+  const bg=kind==='qcat'?'#f0f7ff':'#fff5e6';
+  document.querySelectorAll('#quickadd-modal '+sel).forEach(b=>{b.style.opacity='.4';b.style.background='#fff';});
+  el.style.opacity='1';el.style.background=bg;
+}
+
+function saveQuickAdd(){
+  const text=document.getElementById('quickadd-text').value.trim();
+  if(!text){showToast('Type a task first');return;}
+  const sh=parseShortcuts(text);
+  const catSel=document.querySelector('#quickadd-modal [data-qcat][style*="opacity: 1"]');
+  const prioSel=document.querySelector('#quickadd-modal [data-qprio][style*="opacity: 1"]');
+  const cat=sh.category||(catSel?catSel.dataset.qcat:'');
+  const prio=sh.priority||(prioSel?prioSel.dataset.qprio:'med');
+  const due=sh.due||quickAddDate;
+  const state=document.getElementById('quickadd-state').value||'';
+
+  const newTask={
+    text: sh.text,
+    due: due,
+    category: cat,
+    priority: prio,
+    recur: sh.recur||'',
+    state: state,
+    done: false,
+    id: uid(),
+    createdAt: Date.now()
+  };
+  tasks.push(newTask);
+  saveAll();updateSub();
+  closeQuickAdd();
+  renderCalendar();
+  showToast('Added to '+fmtDate(due),()=>{
+    const i=tasks.findIndex(x=>x.id===newTask.id);
+    if(i>=0){tasks.splice(i,1);saveAll();updateSub();renderCalendar();}
+  });
+}
+
 /* ─────────── Calendar ─────────── */
 let calMode='week'; // 'month' | 'week'
 let calCursor=new Date(); // anchor date
@@ -1615,6 +1770,10 @@ function renderMonth(){
         </div>`;
       });
     }
+    panel+=`<div class="cal-add-btn" onclick="openQuickAdd('${calSelected}')">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+      Add task to ${dateObj.toLocaleDateString('en',{month:'short',day:'numeric'})}
+    </div>`;
     panel+=`</div>`;
     grid+=panel;
   }
@@ -1676,12 +1835,15 @@ function renderWeek(){
     const lbl=busyLabel(items.length);
 
     html+=`<div class="cal-week-day${isToday?' today':''}">
-      <div class="cal-week-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
-        <div class="cal-week-head-left">
+      <div class="cal-week-head">
+        <div class="cal-week-head-left" onclick="this.parentElement.parentElement.querySelector('.cal-week-tasks').style.display=this.parentElement.parentElement.querySelector('.cal-week-tasks').style.display==='none'?'block':'none'">
           <span class="cal-week-dayname">${dayNames[i]}</span>
           <span class="cal-week-daynum">${d.getDate()}</span>
         </div>
-        <span class="cal-week-summary ${lbl.cls}">${lbl.txt}</span>
+        <div class="cal-week-head-right">
+          <span class="cal-week-summary ${lbl.cls}">${lbl.txt}</span>
+          <button class="cal-week-add" onclick="event.stopPropagation();openQuickAdd('${iso}')" title="Add task">+</button>
+        </div>
       </div>
       <div class="cal-week-tasks">`;
 
