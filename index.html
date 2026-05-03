@@ -156,7 +156,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
       <div class="hdr-btn" onclick="switchTab('tasks')">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
       </div>
-      <div class="hdr-btn">
+      <div class="hdr-btn" onclick="showMenu()">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
       </div>
     </div>
@@ -204,21 +204,29 @@ if ('serviceWorker' in navigator) {
 }
 
 // Storage keys
-const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1';
+const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1', LS_CHAT='td_chat_v1';
 function saveAll(){
   try{
     localStorage.setItem(LS_TASKS, JSON.stringify(tasks));
     localStorage.setItem(LS_NOTES, JSON.stringify(notes));
   }catch(e){}
 }
+function saveChat(){
+  try{
+    // keep only last 200 messages to stay small
+    const trimmed=chatLog.slice(-200);
+    localStorage.setItem(LS_CHAT, JSON.stringify(trimmed));
+  }catch(e){}
+}
 function loadAll(){
   try{
     const t=localStorage.getItem(LS_TASKS); if(t) tasks=JSON.parse(t)||[];
     const n=localStorage.getItem(LS_NOTES); if(n) notes=JSON.parse(n)||[];
+    const c=localStorage.getItem(LS_CHAT); if(c) chatLog=JSON.parse(c)||[];
   }catch(e){}
 }
 
-let tasks=[],notes=[],pending=[],pendingNotes=[],step=null,activeFilter='all';
+let tasks=[],notes=[],chatLog=[],pending=[],pendingNotes=[],step=null,activeFilter='all';
 const chatEl=document.getElementById('chat-view');
 const inp=document.getElementById('msg-input');
 
@@ -229,15 +237,29 @@ const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'
 const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
 const ticks=(r)=>`<svg viewBox="0 0 16 11" fill="none"><path d="M1 5.5l3.5 3.5L11 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5l3.5 3.5L15 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
-function addMsg(html,side){
+function addMsg(html,side,opts){
+  opts=opts||{};
   const out=side==='user';
   const row=document.createElement('div');
   row.className='mrow '+(out?'out':'in');
-  const meta=`<div class="bbl-meta">${now()}${out?`<span class="ticks">${ticks(true)}</span>`:''}</div>`;
+  const t=opts.time||now();
+  const meta=`<div class="bbl-meta">${t}${out?`<span class="ticks">${ticks(true)}</span>`:''}</div>`;
   row.innerHTML=`<div class="bbl"><div class="bbl-txt">${out?esc(html):html}</div>${meta}</div>`;
   chatEl.appendChild(row);
   chatEl.scrollTop=chatEl.scrollHeight;
+  // Log to chat history (skip if explicitly told not to, e.g. when replaying)
+  if(!opts.noLog){
+    chatLog.push({html, side: side||'bot', time: t, ts: Date.now()});
+    saveChat();
+  }
   return row;
+}
+
+function replayChat(){
+  // Render saved messages without re-saving them
+  chatLog.forEach(m=>{
+    addMsg(m.html, m.side, {time: m.time, noLog: true});
+  });
 }
 
 function addQR(opts){
@@ -325,7 +347,7 @@ function classify(s){
 
 function sendMsg(){
   const t=inp.value.trim();
-  if(!t&&step&&(step.type==='due'||step.type==='bulk_due')){rmQR();handleReply('skip','Skip');return;}
+  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat')){rmQR();handleReply('skip','Skip');return;}
   if(!t)return;
   inp.value='';inp.style.height='auto';
   rmQR();handleReply(t,t);
@@ -407,7 +429,12 @@ function handleReply(value,label){
       pending.forEach(t=>t.due=resolveDue(value));
       step={type:'bulk_cat'};
       addMsg('Are these <b>Work</b> or <b>Personal</b>?');
-      setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'}]),30);
+      setTimeout(()=>addQR([
+        {l:'💼 Work — all',v:'work',c:'b'},
+        {l:'🏠 Personal — all',v:'personal',c:'p'},
+        {l:'Set one by one',v:'individual',c:'gr'},
+        {l:'Skip ›',v:'skip',c:'gr'},
+      ]),30);
     }
 
   } else if(step.type==='bulk_cat'){
@@ -415,7 +442,11 @@ function handleReply(value,label){
     if(value==='individual'){
       step={type:'category',idx:0};
       addMsg(`Is <b>${esc(pending[0].text)}</b> work or personal?`);
-      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'}]),30);
+      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+    } else if(value==='skip'){
+      // No category, save as is
+      pending.forEach(t=>t.category='');
+      finishFlow();
     } else {
       pending.forEach(t=>t.category=value);
       finishFlow();
@@ -428,12 +459,12 @@ function handleReply(value,label){
     step={type:'category',idx:i};
     setTimeout(()=>{
       addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
-      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'}]),30);
+      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
     },220);
 
   } else if(step.type==='category'){
     addMsg(label,'user');
-    pending[step.idx].category=value;
+    pending[step.idx].category=(value==='skip'?'':value);
     const next=step.idx+1;
     if(next<pending.length){
       step={type:'due',idx:next};
@@ -531,7 +562,7 @@ function renderTasks(){
     groups[key].forEach(t=>{
       const c=document.createElement('div');c.className='tc'+(t.done?' done':'');
       const ds2=dStatus(t.due);
-      c.innerHTML=`<div class="pline ${t.priority}"></div><div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tbody2"><div class="tname">${esc(t.text)}</div><div class="tmeta"><span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>${t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:''}</div></div>`;
+      c.innerHTML=`<div class="pline ${t.priority}"></div><div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tbody2"><div class="tname">${esc(t.text)}</div><div class="tmeta">${t.category?`<span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>`:''}${t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:''}${!t.category&&!t.due?`<span class="tdate">No date</span>`:''}</div></div>`;
       c.onclick=()=>{t.done=!t.done;saveAll();renderTasks();updateSub();};
       g.appendChild(c);
     });
@@ -559,12 +590,37 @@ function deleteNote(id){
   saveAll();
   renderNotes();updateSub();
 }
+
+function showMenu(){
+  const choice=confirm("Clear chat history?\n\n(Tasks and notes will be kept)");
+  if(choice){
+    chatLog=[];
+    saveChat();
+    chatEl.innerHTML='';
+    addMsg("Chat cleared! 🧹 Drop your tasks anytime.");
+  }
+}
 // Boot
 loadAll();
 updateSub();
-if(tasks.length||notes.length){
-  setTimeout(()=>{addMsg(`Welcome back! 👋 You have <b>${tasks.filter(t=>!t.done).length}</b> task${tasks.filter(t=>!t.done).length!==1?'s':''} pending${notes.length?` and <b>${notes.length}</b> note${notes.length!==1?'s':''}`:''}.`);},300);
+
+if(chatLog.length>0){
+  // Replay existing chat history
+  replayChat();
+  // If last message was a long time ago, show subtle "Welcome back" divider
+  const last=chatLog[chatLog.length-1];
+  const hoursSince=(Date.now()-(last.ts||0))/3600000;
+  if(hoursSince>3){
+    setTimeout(()=>{
+      const div=document.createElement('div');
+      div.className='date-div';
+      div.innerHTML=`<span>Welcome back · ${new Date().toLocaleDateString('en',{month:'short',day:'numeric'})}</span>`;
+      chatEl.appendChild(div);
+      chatEl.scrollTop=chatEl.scrollHeight;
+    },200);
+  }
 } else {
+  // First time — show intro
   setTimeout(()=>{addMsg("Hey! 👋");},300);
   setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas, anything you want to remember.");},1000);
   setTimeout(()=>{addMsg("I'll figure out which are <b>tasks</b> 📋 vs which are just <b>notes</b> 📝 to keep.");},1900);
