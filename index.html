@@ -751,7 +751,16 @@ function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever 😊
 
 /* ─────────── Tabs ─────────── */
 function switchTab(t){
-  closeSearch();
+  // Close search panel if it was open, but don't recursively call switchTab
+  const app=document.getElementById('app');
+  if(app.classList.contains('search-open')){
+    app.classList.remove('search-open');
+    document.getElementById('search-bar').classList.remove('open');
+    document.getElementById('search-input').value='';
+  }
+  document.getElementById('search-view').style.display='none';
+  document.getElementById('tabs').style.display='flex';
+
   ['chat','tasks','notes'].forEach(name=>{
     const tab=document.getElementById('tab-'+name);
     if(tab) tab.classList.toggle('active',t===name);
@@ -759,7 +768,6 @@ function switchTab(t){
   chatEl.style.display=t==='chat'?'block':'none';
   document.getElementById('tasks-view').style.display=t==='tasks'?'flex':'none';
   document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
-  document.getElementById('search-view').style.display='none';
   document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
   if(t==='tasks'){document.getElementById('tasks-view').style.flexDirection='column';renderTasks();}
   else if(t==='notes'){document.getElementById('notes-view').style.flexDirection='column';renderNotes();}
