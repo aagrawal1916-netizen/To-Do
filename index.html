@@ -201,6 +201,86 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 /* long-press hint flash */
 @keyframes pulse{0%,100%{background:#fff}50%{background:#e3f2fd}}
 .tc.flash{animation:pulse .3s}
+
+/* swipe to snooze */
+.tc-wrap{position:relative;margin-bottom:4px;overflow:hidden;border-radius:8px}
+.tc-wrap .tc{margin-bottom:0;transition:transform .2s ease-out}
+.tc-wrap.swiping .tc{transition:none}
+.tc-bg{position:absolute;inset:0;background:linear-gradient(90deg, var(--wmed) 0%, #f97316 100%);display:flex;align-items:center;justify-content:flex-end;padding-right:18px;color:#fff;font-size:13px;font-weight:600;border-radius:8px;gap:6px}
+.tc-bg svg{flex-shrink:0}
+
+/* drag reorder */
+.tc.dragging{opacity:.4}
+.tc.drag-handle-active{cursor:grabbing}
+
+/* recurring badge */
+.recur-badge{font-size:11px;color:var(--wgl);font-weight:500;display:inline-flex;align-items:center;gap:3px}
+
+/* shortcuts hint */
+.qr-hint{font-size:11px;color:var(--wmuted);margin-top:4px;font-style:italic}
+
+/* ── Calendar ── */
+.cal-toolbar{display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid #e9edef;flex-shrink:0}
+.cal-mode{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--wmuted);padding:7px 0;border-radius:8px;cursor:pointer;background:#f0f2f5;letter-spacing:.04em}
+.cal-mode.active{background:var(--wteal);color:#fff}
+.cal-nav{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fff;border-bottom:1px solid #e9edef;flex-shrink:0}
+.cal-nav-btn{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--wg);cursor:pointer;font-weight:300;line-height:1}
+.cal-nav-btn:active{background:#f0f2f5}
+.cal-title{font-size:16px;font-weight:600;color:#111;cursor:pointer;text-align:center;flex:1}
+.cal-title:active{opacity:.7}
+
+/* month grid */
+.cal-month{padding:8px}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+.cal-dow-cell{text-align:center;font-size:11px;font-weight:600;color:var(--wmuted);padding:6px 0;text-transform:uppercase;letter-spacing:.05em}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-cell{aspect-ratio:1/1.1;background:#fff;border-radius:6px;padding:4px;cursor:pointer;display:flex;flex-direction:column;position:relative;min-height:54px;border:1px solid transparent;transition:border-color .15s}
+.cal-cell:active{background:#f5f5f5}
+.cal-cell.outside{background:#f8f8f8;opacity:.5}
+.cal-cell.today{border-color:var(--wteal)}
+.cal-cell.today .cal-day-num{background:var(--wteal);color:#fff}
+.cal-cell.selected{background:#e8f5e9;border-color:var(--wgl)}
+.cal-day-num{font-size:13px;font-weight:600;color:#111;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;align-self:flex-start}
+.cal-cell.outside .cal-day-num{color:#aaa}
+.cal-dots{display:flex;flex-wrap:wrap;gap:2px;margin-top:auto;padding-bottom:2px}
+.cal-dot{width:5px;height:5px;border-radius:50%}
+.cal-dot.work{background:var(--wwork)}
+.cal-dot.personal{background:var(--wpersonal)}
+.cal-dot.high{background:var(--whigh)}
+.cal-dot.med{background:var(--wmed)}
+.cal-dot.low{background:var(--wlow)}
+.cal-count{font-size:9px;color:var(--wmuted);font-weight:600;margin-left:1px}
+
+/* week view */
+.cal-week{padding:8px 10px}
+.cal-week-day{background:#fff;border-radius:8px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.cal-week-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:pointer}
+.cal-week-head:active{background:#f0f0f0}
+.cal-week-head-left{display:flex;align-items:center;gap:10px}
+.cal-week-dayname{font-size:12px;font-weight:600;color:var(--wmuted);text-transform:uppercase;letter-spacing:.06em;min-width:36px}
+.cal-week-daynum{font-size:18px;font-weight:600;color:#111;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center}
+.cal-week-day.today .cal-week-daynum{background:var(--wteal);color:#fff}
+.cal-week-day.today .cal-week-dayname{color:var(--wteal)}
+.cal-week-summary{font-size:12px;color:var(--wmuted)}
+.cal-week-summary.busy{color:var(--whigh)}
+.cal-week-summary.free{color:var(--wlow);font-weight:600}
+.cal-week-tasks{padding:6px 12px}
+.cal-week-task{display:flex;align-items:center;gap:9px;padding:7px 4px;font-size:14px;color:#111;cursor:pointer;border-radius:6px}
+.cal-week-task:active{background:#f5f5f5}
+.cal-week-task.done{opacity:.5}
+.cal-week-task.done .cwt-text{text-decoration:line-through;color:var(--wmuted)}
+.cwt-line{width:3px;height:18px;border-radius:2px;flex-shrink:0}
+.cwt-line.high{background:var(--whigh)}.cwt-line.med{background:var(--wmed)}.cwt-line.low{background:var(--wlow)}
+.cwt-text{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cwt-tag{font-size:11px;font-weight:500;flex-shrink:0}
+.cwt-tag.work{color:var(--wwork)}.cwt-tag.personal{color:var(--wpersonal)}
+.cal-week-empty{padding:14px 12px;font-size:12px;color:var(--wlow);text-align:center;font-style:italic;font-weight:600}
+
+/* selected day detail (month view) */
+.cal-day-panel{background:#fff;margin:0 10px 12px;border-radius:8px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.cal-day-panel-h{font-size:13px;font-weight:600;color:#111;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
+.cal-day-panel-h .free-label{font-size:12px;color:var(--wlow);font-weight:600}
+.cal-day-panel-h .busy-label{font-size:12px;color:var(--whigh);font-weight:600}
 </style>
 </head>
 <body>
@@ -221,8 +301,11 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
       </div>
       <div class="menu-pop" id="menu-pop">
-        <div class="menu-item" onclick="exportData()">📥 Export data</div>
+        <div class="menu-item" onclick="enableNotifications()">🔔 <span id="notif-label">Enable reminders</span></div>
         <div class="menu-item" onclick="closeMenu();openSearch()">🔍 Search</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item" onclick="exportData()">📥 Export backup</div>
+        <div class="menu-item" onclick="importData()">📤 Import backup</div>
         <div class="menu-divider"></div>
         <div class="menu-item danger" onclick="confirmClearChat()">🧹 Clear chat</div>
       </div>
@@ -239,6 +322,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
   <div class="tabs" id="tabs">
     <div class="tab active" id="tab-chat" onclick="switchTab('chat')">CHAT</div>
     <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">TASKS</div>
+    <div class="tab" id="tab-cal" onclick="switchTab('cal')">CALENDAR</div>
     <div class="tab" id="tab-notes" onclick="switchTab('notes')">NOTES</div>
   </div>
 
@@ -253,6 +337,19 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
       <div class="flt" data-flt="done" onclick="setFilter('done',this)">Done</div>
     </div>
     <div class="tbody" id="task-list"></div>
+  </div>
+
+  <div class="tv" id="cal-view" style="display:none">
+    <div class="cal-toolbar">
+      <div class="cal-mode" id="cal-mode-month" onclick="setCalMode('month')">Month</div>
+      <div class="cal-mode active" id="cal-mode-week" onclick="setCalMode('week')">Week</div>
+    </div>
+    <div class="cal-nav">
+      <div class="cal-nav-btn" onclick="calNav(-1)">‹</div>
+      <div class="cal-title" id="cal-title" onclick="calToday()"></div>
+      <div class="cal-nav-btn" onclick="calNav(1)">›</div>
+    </div>
+    <div id="cal-body"></div>
   </div>
 
   <div class="tv" id="notes-view" style="display:none">
@@ -292,6 +389,13 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
         <div class="qr r" data-prio="high" onclick="pickEditPrio(this)">High</div>
         <div class="qr o" data-prio="med" onclick="pickEditPrio(this)">Med</div>
         <div class="qr g" data-prio="low" onclick="pickEditPrio(this)">Low</div>
+      </div>
+      <label>Repeat</label>
+      <div class="modal-row" style="flex-wrap:wrap">
+        <div class="qr gr" data-rep="" onclick="pickEditRep(this)">Once</div>
+        <div class="qr g" data-rep="daily" onclick="pickEditRep(this)">Daily</div>
+        <div class="qr g" data-rep="weekly" onclick="pickEditRep(this)">Weekly</div>
+        <div class="qr g" data-rep="monthly" onclick="pickEditRep(this)">Monthly</div>
       </div>
       <div class="modal-btns">
         <button class="modal-btn danger" onclick="deleteTaskFromEdit()">Delete</button>
@@ -343,6 +447,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
     <span id="toast-msg"></span>
     <span class="toast-undo" id="toast-undo" onclick="doUndo()">UNDO</span>
   </div>
+
+  <!-- Hidden import input -->
+  <input type="file" id="import-input" accept=".json,application/json" style="display:none"/>
 </div>
 
 <script>
@@ -547,7 +654,13 @@ function sendMsg(){
 function handleReply(value,label){
   if(step===null){
     addMsg(label,'user');
-    const p=parseDump(label);
+
+    // Phase 2: Detect shortcuts in the raw input — applies to ALL items in this dump
+    const sh=parseShortcuts(label);
+    const cleanedLabel=sh.text;
+    const sharedShortcuts=(sh.category||sh.due||sh.priority||sh.recur);
+
+    const p=parseDump(cleanedLabel);
     if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines 😊");return;}
 
     const items=p.map(text=>{
@@ -560,7 +673,13 @@ function handleReply(value,label){
     });
 
     const definiteNotes=items.filter(i=>i.kind==='note').map(i=>i.text);
-    const definiteTasks=items.filter(i=>i.kind==='task').map(i=>({text:i.text, due:i.autoDue||'', category:'', priority:'med'}));
+    const definiteTasks=items.filter(i=>i.kind==='task').map(i=>({
+      text:i.text,
+      due: sh.due || i.autoDue || '',
+      category: sh.category || '',
+      priority: sh.priority || 'med',
+      recur: sh.recur || ''
+    }));
     const unsure=items.filter(i=>i.kind==='unsure').map(i=>i.text);
 
     if(definiteNotes.length){
@@ -568,6 +687,29 @@ function handleReply(value,label){
       saveAll();
     }
 
+    // Phase 2: If shortcuts fully specify the task, skip the chat flow entirely
+    if(sharedShortcuts && definiteTasks.length && !unsure.length){
+      // Check if everything is set (have category AND priority via shortcuts, due is optional)
+      const fullyDefined = sh.category && sh.priority;
+      if(fullyDefined){
+        definiteTasks.forEach(t=>tasks.push({...t, done:false, id:uid(), createdAt:Date.now()}));
+        saveAll();updateSub();
+        const rows=definiteTasks.map(t=>`
+          <div class="srow">
+            <span class="sname">${esc(t.text)}</span>
+            <span class="sright">
+              ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'⚡':''}${t.priority}</span>`:''}
+              ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
+              <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
+            </span>
+          </div>`).join('');
+        const noteSection=definiteNotes.length?`<div style="margin:5px 0;font-size:13px;color:#666">📝 ${definiteNotes.length} note${definiteNotes.length>1?'s':''} also saved</div>`:'';
+        addMsg(`⚡ Quick-added <b>${definiteTasks.length}</b> task${definiteTasks.length>1?'s':''}!<div class="scard">${rows}</div>${noteSection}`);
+        return;
+      }
+    }
+
+    // All-notes case (no tasks at all)
     if(!definiteTasks.length && !unsure.length && definiteNotes.length){
       const list=definiteNotes.map(n=>`<div style="padding:2px 0;color:#333;font-size:14px">📝 ${esc(n)}</div>`).join('');
       addMsg(`Saved as <b>note${definiteNotes.length>1?'s':''}</b>:<div style="margin:6px 0 4px">${list}</div>`);
@@ -751,9 +893,8 @@ function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever 😊
 
 /* ─────────── Tabs ─────────── */
 function switchTab(t){
-  if(!['chat','tasks','notes'].includes(t)) t='chat';
+  if(!['chat','tasks','notes','cal'].includes(t)) t='chat';
   currentTab=t;
-  // Close search panel if it was open, but don't recursively call switchTab
   const app=document.getElementById('app');
   if(app.classList.contains('search-open')){
     app.classList.remove('search-open');
@@ -763,16 +904,18 @@ function switchTab(t){
   document.getElementById('search-view').style.display='none';
   document.getElementById('tabs').style.display='flex';
 
-  ['chat','tasks','notes'].forEach(name=>{
+  ['chat','tasks','cal','notes'].forEach(name=>{
     const tab=document.getElementById('tab-'+name);
     if(tab) tab.classList.toggle('active',t===name);
   });
   chatEl.style.display=t==='chat'?'block':'none';
   document.getElementById('tasks-view').style.display=t==='tasks'?'flex':'none';
+  document.getElementById('cal-view').style.display=t==='cal'?'flex':'none';
   document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
   document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
   if(t==='tasks'){document.getElementById('tasks-view').style.flexDirection='column';renderTasks();}
   else if(t==='notes'){document.getElementById('notes-view').style.flexDirection='column';renderNotes();}
+  else if(t==='cal'){document.getElementById('cal-view').style.flexDirection='column';renderCalendar();}
   else if(t==='chat'){chatEl.scrollTop=chatEl.scrollHeight;}
 }
 
@@ -834,6 +977,14 @@ function renderTasks(){
 }
 
 function createTaskCard(t){
+  // wrap card in a swipeable container
+  const wrap=document.createElement('div');
+  wrap.className='tc-wrap';
+  wrap.innerHTML=`<div class="tc-bg">
+    <span>Snooze 1 day</span>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+  </div>`;
+
   const c=document.createElement('div');
   c.className='tc'+(t.done?' done':'');
   c.dataset.id=t.id;
@@ -841,7 +992,8 @@ function createTaskCard(t){
   const prioBit=t.priority&&t.priority!=='med'?`<span class="tprio ${t.priority}">${t.priority==='high'?'⚡ High':'Low'}</span>`:'';
   const catBit=t.category?`<span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>`:'';
   const dateBit=t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:'';
-  const meta=(prioBit||catBit||dateBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}</div>`:'';
+  const recBit=t.recur?`<span class="recur-badge">🔁 ${t.recur}</span>`:'';
+  const meta=(prioBit||catBit||dateBit||recBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}${recBit}</div>`:'';
   c.innerHTML=`
     <div class="pline ${t.priority||'med'}"></div>
     <div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
@@ -849,25 +1001,78 @@ function createTaskCard(t){
       <div class="tname">${esc(t.text)}</div>
       ${meta}
     </div>`;
+  wrap.appendChild(c);
 
-  // Tap toggles done; long-press opens edit
+  // Swipe to snooze (right-swipe). Pointer-based to handle long-press too.
+  let startX=null, startY=null, currentX=0, swiping=false, swipeFired=false;
+  const SWIPE_TRIGGER=80;
+
   c.addEventListener('pointerdown',e=>{
-    longPressed=false;
-    pressTimer=setTimeout(()=>{longPressed=true;openEdit(t.id);if(navigator.vibrate)navigator.vibrate(40);},500);
+    longPressed=false; swipeFired=false;
+    startX=e.clientX; startY=e.clientY; currentX=0;
+    pressTimer=setTimeout(()=>{
+      if(swiping) return;
+      longPressed=true;openEdit(t.id);if(navigator.vibrate)navigator.vibrate(40);
+    },500);
   });
+
+  c.addEventListener('pointermove',e=>{
+    if(startX===null||t.done) return;
+    const dx=e.clientX-startX;
+    const dy=Math.abs(e.clientY-startY);
+    // Need clearly horizontal movement to engage swipe
+    if(!swiping && Math.abs(dx)>10 && dy<15){
+      swiping=true;
+      wrap.classList.add('swiping');
+      clearTimeout(pressTimer);
+    }
+    if(swiping && dx>0){
+      currentX=Math.min(dx, 200);
+      c.style.transform=`translateX(${currentX}px)`;
+    }
+  });
+
+  const finishSwipe=()=>{
+    if(swiping){
+      wrap.classList.remove('swiping');
+      if(currentX>SWIPE_TRIGGER){
+        // animate off then snooze
+        c.style.transform='translateX(100%)';
+        swipeFired=true;
+        setTimeout(()=>{c.style.transform='';snoozeTask(t.id, 1);},150);
+      } else {
+        c.style.transform='';
+      }
+    }
+    swiping=false; startX=null; currentX=0;
+  };
+
   c.addEventListener('pointerup',e=>{
     clearTimeout(pressTimer);
-    if(!longPressed){toggleDone(t.id);}
+    if(swiping){finishSwipe();return;}
+    if(!longPressed && !swipeFired){toggleDone(t.id);}
+    startX=null;
   });
-  c.addEventListener('pointerleave',()=>clearTimeout(pressTimer));
-  c.addEventListener('pointercancel',()=>clearTimeout(pressTimer));
-  return c;
+  c.addEventListener('pointerleave',()=>{clearTimeout(pressTimer);if(swiping){finishSwipe();}});
+  c.addEventListener('pointercancel',()=>{clearTimeout(pressTimer);if(swiping){c.style.transform='';wrap.classList.remove('swiping');swiping=false;startX=null;}});
+
+  return wrap;
 }
 
 function toggleDone(id){
   const t=tasks.find(x=>x.id===id);
   if(!t)return;
   const wasDone=t.done;
+
+  // Recurring task — when marked done, advance the date instead
+  if(!wasDone && t.recur && t.due){
+    const oldDue=t.due;
+    t.due=nextOccurrence(t.due, t.recur);
+    saveAll();renderTasks();updateSub();
+    showToast(`Done — repeats on ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
+    return;
+  }
+
   t.done=!t.done;
   saveAll();renderTasks();updateSub();
   if(!wasDone){
@@ -888,6 +1093,10 @@ function openEdit(id){
   document.querySelectorAll('#edit-modal [data-prio]').forEach(b=>{
     b.style.opacity=(b.dataset.prio===(t.priority||'med'))?'1':'.4';
     b.style.background=(b.dataset.prio===(t.priority||'med'))?'#fff5e6':'#fff';
+  });
+  document.querySelectorAll('#edit-modal [data-rep]').forEach(b=>{
+    b.style.opacity=(b.dataset.rep===(t.recur||''))?'1':'.4';
+    b.style.background=(b.dataset.rep===(t.recur||''))?'#e8f5e9':'#fff';
   });
   document.getElementById('edit-modal').classList.add('open');
 }
@@ -912,8 +1121,10 @@ function saveEdit(){
   t.due=document.getElementById('edit-date').value||'';
   const catSel=document.querySelector('#edit-modal [data-cat][style*="opacity: 1"]');
   const prioSel=document.querySelector('#edit-modal [data-prio][style*="opacity: 1"]');
+  const repSel=document.querySelector('#edit-modal [data-rep][style*="opacity: 1"]');
   t.category=catSel?catSel.dataset.cat:'';
   t.priority=prioSel?prioSel.dataset.prio:'med';
+  t.recur=repSel?repSel.dataset.rep:'';
   saveAll();
   closeEdit();
   renderTasks();updateSub();
@@ -1005,10 +1216,11 @@ function openSearch(){
   closeMenu();
   document.getElementById('app').classList.add('search-open');
   document.getElementById('search-bar').classList.add('open');
-  ['tab-chat','tab-tasks','tab-notes'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  ['tab-chat','tab-tasks','tab-cal','tab-notes'].forEach(id=>{const e=document.getElementById(id);if(e)e.classList.remove('active');});
   document.getElementById('tabs').style.display='none';
   chatEl.style.display='none';
   document.getElementById('tasks-view').style.display='none';
+  document.getElementById('cal-view').style.display='none';
   document.getElementById('notes-view').style.display='none';
   document.getElementById('input-bar').style.display='none';
   const sv=document.getElementById('search-view');sv.style.display='flex';sv.style.flexDirection='column';
@@ -1136,8 +1348,368 @@ function doUndo(){
   clearTimeout(toastTimer);
 }
 
-/* ─────────── Boot ─────────── */
-loadAll();updateSub();
+/* ─────────── Phase 2: Recurring tasks ─────────── */
+function nextOccurrence(iso, recur){
+  if(!iso||!recur) return iso;
+  const d=new Date(iso+'T00:00:00');
+  if(recur==='daily') d.setDate(d.getDate()+1);
+  else if(recur==='weekly') d.setDate(d.getDate()+7);
+  else if(recur==='monthly') d.setMonth(d.getMonth()+1);
+  return d.toISOString().split('T')[0];
+}
+
+function pickEditRep(el){
+  document.querySelectorAll('#edit-modal [data-rep]').forEach(b=>{b.style.opacity='.4';b.style.background='#fff';});
+  el.style.opacity='1';el.style.background='#e8f5e9';
+}
+
+/* ─────────── Phase 2: Notifications ─────────── */
+async function enableNotifications(){
+  closeMenu();
+  if(!('Notification' in window)){showToast('Notifications not supported on this device');return;}
+  if(Notification.permission==='granted'){
+    showToast('Reminders are already on ✓');
+    updateNotifLabel();
+    runNotificationCheck();
+    return;
+  }
+  if(Notification.permission==='denied'){
+    showToast('Permission was denied — enable in browser settings');
+    return;
+  }
+  try{
+    const p=await Notification.requestPermission();
+    if(p==='granted'){
+      showToast('Reminders enabled 🔔');
+      updateNotifLabel();
+      runNotificationCheck();
+    } else {
+      showToast('Reminders not enabled');
+    }
+  }catch(e){showToast('Could not request permission');}
+}
+
+function updateNotifLabel(){
+  const lbl=document.getElementById('notif-label');
+  if(!lbl) return;
+  if(typeof Notification==='undefined'){lbl.textContent='Reminders unavailable';return;}
+  if(Notification.permission==='granted') lbl.textContent='Reminders on ✓';
+  else lbl.textContent='Enable reminders';
+}
+
+function runNotificationCheck(){
+  if(typeof Notification==='undefined'||Notification.permission!=='granted') return;
+  const today=isoToday();
+  const notified=JSON.parse(localStorage.getItem('td_notified_v1')||'{}');
+  // Clean old entries (>7 days)
+  const cutoff=Date.now()-7*86400000;
+  Object.keys(notified).forEach(k=>{if(notified[k]<cutoff) delete notified[k];});
+
+  const dueToday=tasks.filter(t=>!t.done&&t.due===today);
+  const overdue=tasks.filter(t=>!t.done&&t.due&&t.due<today);
+
+  const todayKey='today_'+today;
+  if(dueToday.length&&!notified[todayKey]){
+    try{
+      new Notification('TaskDump',{
+        body: dueToday.length===1?`Due today: ${dueToday[0].text}`:`${dueToday.length} tasks due today`,
+        icon:'icon-192.png',
+        tag:'taskdump-today',
+        badge:'icon-192.png',
+      });
+      notified[todayKey]=Date.now();
+    }catch(e){}
+  }
+
+  if(overdue.length){
+    const odKey='overdue_'+today;
+    if(!notified[odKey]){
+      try{
+        new Notification('TaskDump',{
+          body:`${overdue.length} overdue task${overdue.length>1?'s':''}`,
+          icon:'icon-192.png',
+          tag:'taskdump-overdue',
+        });
+        notified[odKey]=Date.now();
+      }catch(e){}
+    }
+  }
+
+  localStorage.setItem('td_notified_v1', JSON.stringify(notified));
+}
+
+/* ─────────── Phase 2: Quick-add shortcuts ─────────── */
+// !w=work, !p=personal, !t=today, !tm=tomorrow, !h=high, !l=low, !m=medium, !d=daily, !wk=weekly
+function parseShortcuts(text){
+  const tokens={category:'',due:'',priority:'',recur:''};
+  const cleaned=text.replace(/!(\w+)/g,(m,flag)=>{
+    flag=flag.toLowerCase();
+    if(flag==='w'||flag==='work'){tokens.category='work';return'';}
+    if(flag==='p'||flag==='personal'){tokens.category='personal';return'';}
+    if(flag==='t'||flag==='today'){tokens.due=isoToday();return'';}
+    if(flag==='tm'||flag==='tomorrow'){tokens.due=isoOff(1);return'';}
+    if(flag==='wk'||flag==='week'){tokens.due=isoWeekday(5);return'';}
+    if(flag==='h'||flag==='high'){tokens.priority='high';return'';}
+    if(flag==='l'||flag==='low'){tokens.priority='low';return'';}
+    if(flag==='m'||flag==='med'){tokens.priority='med';return'';}
+    if(flag==='daily'){tokens.recur='daily';return'';}
+    if(flag==='weekly'){tokens.recur='weekly';return'';}
+    if(flag==='monthly'){tokens.recur='monthly';return'';}
+    return m;
+  }).replace(/\s+/g,' ').trim();
+  return {text:cleaned, ...tokens};
+}
+
+/* ─────────── Phase 2: Snooze (swipe right on task) ─────────── */
+function snoozeTask(id, days){
+  const t=tasks.find(x=>x.id===id); if(!t) return;
+  const oldDue=t.due;
+  const base=t.due&&new Date(t.due)>new Date(isoToday()+'T00:00:00')?t.due:isoToday();
+  const d=new Date(base+'T00:00:00');
+  d.setDate(d.getDate()+days);
+  t.due=d.toISOString().split('T')[0];
+  saveAll();renderTasks();updateSub();
+  showToast(`Snoozed to ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
+}
+
+/* ─────────── Phase 2: Import backup ─────────── */
+function importData(){
+  closeMenu();
+  document.getElementById('import-input').click();
+}
+
+document.getElementById('import-input').addEventListener('change', e=>{
+  const file=e.target.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const data=JSON.parse(ev.target.result);
+      if(!data||!Array.isArray(data.tasks)){throw new Error('Invalid backup');}
+      showConfirm('Import backup?',`Replace your current ${tasks.length} tasks and ${notes.length} notes with ${data.tasks.length} tasks and ${(data.notes||[]).length} notes from the backup?`,()=>{
+        tasks=data.tasks||[];
+        notes=data.notes||[];
+        saveAll();updateSub();
+        if(currentTab==='tasks') renderTasks();
+        else if(currentTab==='notes') renderNotes();
+        showToast('Backup imported ✓');
+      });
+    }catch(err){
+      showToast('Could not read backup file');
+    }
+    e.target.value=''; // reset
+  };
+  reader.readAsText(file);
+});
+
+/* ─────────── Calendar ─────────── */
+let calMode='week'; // 'month' | 'week'
+let calCursor=new Date(); // anchor date
+let calSelected=null; // selected date in month view (ISO string)
+
+function calToday(){
+  calCursor=new Date();
+  calSelected=null;
+  renderCalendar();
+}
+
+function setCalMode(m){
+  calMode=m;
+  document.getElementById('cal-mode-month').classList.toggle('active',m==='month');
+  document.getElementById('cal-mode-week').classList.toggle('active',m==='week');
+  renderCalendar();
+}
+
+function calNav(dir){
+  const d=new Date(calCursor);
+  if(calMode==='month'){
+    d.setDate(1);
+    d.setMonth(d.getMonth()+dir);
+  } else {
+    d.setDate(d.getDate()+dir*7);
+  }
+  calCursor=d;
+  calSelected=null;
+  renderCalendar();
+}
+
+function tasksOnDate(iso){
+  return tasks.filter(t=>t.due===iso&&!t.done).sort((a,b)=>{
+    const po={high:0,med:1,low:2};
+    return (po[a.priority]||1)-(po[b.priority]||1);
+  });
+}
+
+function busyLabel(count){
+  if(count===0) return {txt:'Free',cls:'free'};
+  if(count===1) return {txt:'1 task',cls:''};
+  if(count<=3) return {txt:count+' tasks',cls:''};
+  return {txt:count+' tasks',cls:'busy'};
+}
+
+function renderCalendar(){
+  if(calMode==='month') renderMonth();
+  else renderWeek();
+}
+
+function renderMonth(){
+  const body=document.getElementById('cal-body');
+  const year=calCursor.getFullYear();
+  const month=calCursor.getMonth();
+  const monthName=calCursor.toLocaleDateString('en',{month:'long',year:'numeric'});
+  document.getElementById('cal-title').textContent=monthName;
+
+  // Build grid: 6 weeks × 7 days, starting Sunday
+  const first=new Date(year,month,1);
+  const startDay=first.getDay(); // 0=Sun
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const today=isoToday();
+
+  let grid='<div class="cal-month"><div class="cal-dow">';
+  ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d=>grid+=`<div class="cal-dow-cell">${d}</div>`);
+  grid+='</div><div class="cal-grid">';
+
+  // previous month tail
+  const prevDays=new Date(year,month,0).getDate();
+  for(let i=startDay-1;i>=0;i--){
+    const day=prevDays-i;
+    const d=new Date(year,month-1,day);
+    const iso=d.toISOString().split('T')[0];
+    grid+=cellHTML(iso,day,true,false,false);
+  }
+  // current month
+  for(let day=1;day<=daysInMonth;day++){
+    const d=new Date(year,month,day);
+    const iso=d.toISOString().split('T')[0];
+    const isToday=iso===today;
+    const isSelected=iso===calSelected;
+    grid+=cellHTML(iso,day,false,isToday,isSelected);
+  }
+  // next month head
+  const totalFilled=startDay+daysInMonth;
+  const trailing=(7-(totalFilled%7))%7;
+  for(let day=1;day<=trailing;day++){
+    const d=new Date(year,month+1,day);
+    const iso=d.toISOString().split('T')[0];
+    grid+=cellHTML(iso,day,true,false,false);
+  }
+  grid+='</div></div>';
+
+  // Selected day panel below
+  if(calSelected){
+    const items=tasksOnDate(calSelected);
+    const dateObj=new Date(calSelected+'T00:00:00');
+    const head=dateObj.toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'});
+    let panel=`<div class="cal-day-panel"><div class="cal-day-panel-h"><span>${head}</span>`;
+    if(items.length===0) panel+=`<span class="free-label">✓ Free</span>`;
+    else if(items.length>=4) panel+=`<span class="busy-label">⚠ Busy</span>`;
+    else panel+=`<span style="color:var(--wmuted);font-size:12px">${items.length} task${items.length>1?'s':''}</span>`;
+    panel+=`</div>`;
+    if(!items.length){
+      panel+=`<div style="font-size:13px;color:var(--wmuted);text-align:center;padding:6px 0">No tasks scheduled — good time to slot in a meeting 👍</div>`;
+    } else {
+      items.forEach(t=>{
+        panel+=`<div class="cal-week-task" data-id="${t.id}" onclick="openEdit('${t.id}')">
+          <div class="cwt-line ${t.priority||'med'}"></div>
+          <span class="cwt-text">${esc(t.text)}</span>
+          ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'💼':'🏠'}</span>`:''}
+        </div>`;
+      });
+    }
+    panel+=`</div>`;
+    grid+=panel;
+  }
+
+  body.innerHTML=grid;
+}
+
+function cellHTML(iso,day,outside,isToday,isSelected){
+  const items=tasksOnDate(iso);
+  const cats=new Set(items.map(t=>t.category).filter(Boolean));
+  const hasHigh=items.some(t=>t.priority==='high');
+
+  let dots='';
+  if(hasHigh) dots+='<span class="cal-dot high"></span>';
+  if(cats.has('work')) dots+='<span class="cal-dot work"></span>';
+  if(cats.has('personal')) dots+='<span class="cal-dot personal"></span>';
+  if(items.length>0&&!dots) dots='<span class="cal-dot med"></span>';
+  const count=items.length>1?`<span class="cal-count">${items.length}</span>`:'';
+
+  const cls=['cal-cell'];
+  if(outside) cls.push('outside');
+  if(isToday) cls.push('today');
+  if(isSelected) cls.push('selected');
+
+  return `<div class="${cls.join(' ')}" onclick="selectCalDay('${iso}')">
+    <div class="cal-day-num">${day}</div>
+    <div class="cal-dots">${dots}${count}</div>
+  </div>`;
+}
+
+function selectCalDay(iso){
+  calSelected = (calSelected===iso) ? null : iso;
+  renderMonth();
+}
+
+function renderWeek(){
+  const body=document.getElementById('cal-body');
+  // Find Sunday of the week containing calCursor
+  const start=new Date(calCursor);
+  start.setDate(start.getDate()-start.getDay());
+  start.setHours(0,0,0,0);
+  const end=new Date(start);
+  end.setDate(end.getDate()+6);
+
+  const startStr=start.toLocaleDateString('en',{month:'short',day:'numeric'});
+  const endStr=end.toLocaleDateString('en',{month:'short',day:'numeric',year:start.getFullYear()!==end.getFullYear()||start.getMonth()!==end.getMonth()?undefined:undefined});
+  document.getElementById('cal-title').textContent=`${startStr} – ${endStr}`;
+
+  const today=isoToday();
+  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let html='<div class="cal-week">';
+
+  for(let i=0;i<7;i++){
+    const d=new Date(start);
+    d.setDate(d.getDate()+i);
+    const iso=d.toISOString().split('T')[0];
+    const items=tasksOnDate(iso);
+    const isToday=iso===today;
+    const lbl=busyLabel(items.length);
+
+    html+=`<div class="cal-week-day${isToday?' today':''}">
+      <div class="cal-week-head" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none'">
+        <div class="cal-week-head-left">
+          <span class="cal-week-dayname">${dayNames[i]}</span>
+          <span class="cal-week-daynum">${d.getDate()}</span>
+        </div>
+        <span class="cal-week-summary ${lbl.cls}">${lbl.txt}</span>
+      </div>
+      <div class="cal-week-tasks">`;
+
+    if(!items.length){
+      html+=`<div class="cal-week-empty">✓ Free — open for plans</div>`;
+    } else {
+      items.forEach(t=>{
+        html+=`<div class="cal-week-task" onclick="openEdit('${t.id}')">
+          <div class="cwt-line ${t.priority||'med'}"></div>
+          <span class="cwt-text">${esc(t.text)}</span>
+          ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'💼':'🏠'}</span>`:''}
+        </div>`;
+      });
+    }
+
+    html+=`</div></div>`;
+  }
+  html+='</div>';
+  body.innerHTML=html;
+}
+
+loadAll();updateSub();updateNotifLabel();
+
+// Run notification check on boot (if granted) and every 30 mins
+runNotificationCheck();
+setInterval(runNotificationCheck, 30*60*1000);
+// Also run when tab becomes visible
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) runNotificationCheck();});
 
 if(chatLog.length>0){
   replayChat();
@@ -1153,7 +1725,8 @@ if(chatLog.length>0){
 } else {
   setTimeout(()=>{addMsg("Hey! 👋");},300);
   setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" 📅");},1000);
-  setTimeout(()=>{addMsg("Long-press any task to edit • Tap notes to edit • Search 🔍 in the top bar.");},2000);
+  setTimeout(()=>{addMsg("⚡ <b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
+  setTimeout(()=>{addMsg("Long-press any task to edit • Swipe right to snooze • Tap 🔔 in menu for reminders.");},3000);
 }
 </script>
 </body>
