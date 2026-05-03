@@ -119,6 +119,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .flt.fp{background:#f3e8ff;color:var(--wpersonal);border-color:var(--wpersonal)}
 .flt.fd{background:#dcf8c6;color:var(--wgl);border-color:var(--wgl)}
 .flt.fh{background:#fee2e2;color:var(--whigh);border-color:var(--whigh)}
+.flt.fs{background:#eef2ff;color:#4338ca;border-color:#818cf8}
 .tbody{padding:8px 10px}
 .tgrp{margin-bottom:14px}
 .tglbl{font-size:11.5px;font-weight:600;color:var(--wmuted);margin-bottom:6px;padding:0 2px;text-transform:uppercase;letter-spacing:.04em}
@@ -342,11 +343,13 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
   <div class="tv" id="tasks-view" style="display:none">
     <div class="frow">
       <div class="flt fa" data-flt="all" onclick="setFilter('all',this)">All</div>
+      <div class="flt" data-flt="by-state" onclick="setFilter('by-state',this)">By State</div>
       <div class="flt" data-flt="high" onclick="setFilter('high',this)">⚡ Priority</div>
       <div class="flt" data-flt="work" onclick="setFilter('work',this)">Work</div>
       <div class="flt" data-flt="personal" onclick="setFilter('personal',this)">Personal</div>
       <div class="flt" data-flt="done" onclick="setFilter('done',this)">Done</div>
     </div>
+    <div class="frow" id="state-filter-row" style="display:none"></div>
     <div class="tbody" id="task-list"></div>
   </div>
 
@@ -580,13 +583,15 @@ const rmQR=()=>{const q=document.getElementById('qr-active');if(q)q.remove();};
 /* ─────────── Date helpers ─────────── */
 const isoToday=()=>new Date().toISOString().split('T')[0];
 
-/* States — limited list */
+/* States / regions */
 const IN_REGIONS = [
+  {zone:'Northern', states:['Delhi','Haryana','Himachal Pradesh','Jammu and Kashmir','Ladakh','Punjab','Rajasthan','Uttar Pradesh','Uttarakhand']},
   {zone:'Central',  states:['Madhya Pradesh','Chhattisgarh']},
   {zone:'Eastern',  states:['Bihar','Jharkhand','Odisha','West Bengal']},
-  {zone:'Western',  states:['Goa','Gujarat','Maharashtra']},
-  {zone:'North-Eastern', states:['Assam','Manipur','Meghalaya','Sikkim','Tripura']},
-  {zone:'Other',    states:['Other Indian state','Outside India']},
+  {zone:'Western',  states:['Dadra and Nagar Haveli and Daman and Diu','Goa','Gujarat','Maharashtra']},
+  {zone:'Southern', states:['Andhra Pradesh','Karnataka','Kerala','Lakshadweep','Puducherry','Tamil Nadu','Telangana']},
+  {zone:'North-Eastern', states:['Arunachal Pradesh','Assam','Manipur','Meghalaya','Mizoram','Nagaland','Sikkim','Tripura']},
+  {zone:'Other',    states:['Andaman and Nicobar Islands','Chandigarh','Other Indian state','Outside India']},
 ];
 
 function populateStateSelect(selectEl){
@@ -714,21 +719,42 @@ function classify(s){
 
 // Map for state header recognition (lowercase keys → canonical state name)
 const STATE_HEADER_MAP = {
+  'delhi':'Delhi','dl':'Delhi','new delhi':'Delhi',
+  'haryana':'Haryana','hr':'Haryana',
+  'himachal':'Himachal Pradesh','himachal pradesh':'Himachal Pradesh','hp':'Himachal Pradesh',
+  'jammu and kashmir':'Jammu and Kashmir','j&k':'Jammu and Kashmir','jk':'Jammu and Kashmir','jammu kashmir':'Jammu and Kashmir',
+  'ladakh':'Ladakh',
+  'punjab':'Punjab','pb':'Punjab',
+  'rajasthan':'Rajasthan','rj':'Rajasthan',
   'mp':'Madhya Pradesh','m.p':'Madhya Pradesh','m.p.':'Madhya Pradesh','madhya pradesh':'Madhya Pradesh',
   'cg':'Chhattisgarh','c.g':'Chhattisgarh','c.g.':'Chhattisgarh','chhattisgarh':'Chhattisgarh','chattisgarh':'Chhattisgarh',
   'up':'Uttar Pradesh','u.p':'Uttar Pradesh','uttar pradesh':'Uttar Pradesh',
+  'uttarakhand':'Uttarakhand','uk':'Uttarakhand',
   'mh':'Maharashtra','maharashtra':'Maharashtra','maharastra':'Maharashtra','maharstra':'Maharashtra','mahrastra':'Maharashtra',
   'gj':'Gujarat','gujarat':'Gujarat','gujrat':'Gujarat',
   'goa':'Goa',
+  'dadra nagar haveli daman diu':'Dadra and Nagar Haveli and Daman and Diu','dnhdd':'Dadra and Nagar Haveli and Daman and Diu',
   'br':'Bihar','bihar':'Bihar',
   'jh':'Jharkhand','jharkhand':'Jharkhand','jharkand':'Jharkhand',
   'wb':'West Bengal','west bengal':'West Bengal','bengal':'West Bengal',
   'od':'Odisha','odisha':'Odisha','orissa':'Odisha',
+  'ap':'Andhra Pradesh','andhra':'Andhra Pradesh','andhra pradesh':'Andhra Pradesh',
+  'ka':'Karnataka','karnataka':'Karnataka',
+  'kl':'Kerala','kerala':'Kerala',
+  'ld':'Lakshadweep','lakshadweep':'Lakshadweep',
+  'py':'Puducherry','pondicherry':'Puducherry','puducherry':'Puducherry',
+  'tn':'Tamil Nadu','tamil nadu':'Tamil Nadu','tamilnadu':'Tamil Nadu',
+  'ts':'Telangana','tg':'Telangana','telangana':'Telangana',
+  'ar':'Arunachal Pradesh','arunachal':'Arunachal Pradesh','arunachal pradesh':'Arunachal Pradesh',
   'as':'Assam','assam':'Assam',
   'mn':'Manipur','manipur':'Manipur',
   'ml':'Meghalaya','meghalaya':'Meghalaya',
+  'mz':'Mizoram','mizoram':'Mizoram',
+  'nl':'Nagaland','nagaland':'Nagaland',
   'sk':'Sikkim','sikkim':'Sikkim',
   'tr':'Tripura','tripura':'Tripura',
+  'andaman':'Andaman and Nicobar Islands','andaman nicobar':'Andaman and Nicobar Islands','andaman and nicobar':'Andaman and Nicobar Islands',
+  'chandigarh':'Chandigarh','ch':'Chandigarh',
   'ne':'Other Indian state','north east':'Other Indian state','northeast':'Other Indian state','north-east':'Other Indian state',
 };
 
@@ -831,14 +857,14 @@ function handleReply(value,label){
     // Phase 2: Detect shortcuts in the raw input — applies to ALL items in this dump
     const sh=parseShortcuts(label);
     const cleanedLabel=sh.text;
-    const sharedShortcuts=(sh.category||sh.due||sh.priority||sh.recur);
+    const sharedShortcuts=(sh.category||sh.due||sh.priority||sh.recur||sh.state);
 
     const p=parseDump(cleanedLabel);
     if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines 😊");return;}
 
     const items=p.map(item=>{
       const text=item.text;
-      const state=item.state||'';
+      const state=sh.state || item.state || '';
       const k=classify(text);
       if(k==='task'){
         const d=extractDate(text);
@@ -854,7 +880,7 @@ function handleReply(value,label){
       category: sh.category || '',
       priority: sh.priority || 'med',
       recur: sh.recur || '',
-      state: i.state || ''
+      state: sh.state || i.state || ''
     }));
     const unsure=items.filter(i=>i.kind==='unsure').map(i=>i.text);
 
@@ -1110,11 +1136,11 @@ function switchTab(t){
   else if(t==='chat'){chatEl.scrollTop=chatEl.scrollHeight;}
 }
 
-const fmap={all:'fa',work:'fw',personal:'fp',done:'fd',high:'fh'};
+const fmap={all:'fa',work:'fw',personal:'fp',done:'fd',high:'fh','by-state':'fs'};
 function setFilter(f,el){
   activeFilter=f;
   document.querySelectorAll('.flt').forEach(x=>{x.className='flt';});
-  el.classList.add(fmap[f]);
+  if(el) el.classList.add(fmap[f]||'fs');
   renderTasks();
 }
 
@@ -1129,27 +1155,85 @@ function updateSub(){
 }
 
 /* ─────────── Tasks list ─────────── */
+function taskState(t){return (t.state||'').trim();}
+function stateFilterValue(state){return 'state:'+state;}
+function activeTasksForStateFilters(){
+  return tasks.filter(t=>!t.done&&taskState(t));
+}
+function sortedTaskStates(source){
+  return [...new Set(source.map(taskState).filter(Boolean))].sort((a,b)=>a.localeCompare(b));
+}
+function renderStateFilters(){
+  const row=document.getElementById('state-filter-row');
+  if(!row) return;
+  const states=sortedTaskStates(activeTasksForStateFilters());
+  const show=activeFilter==='by-state'||activeFilter.startsWith('state:');
+  row.style.display=(show&&states.length)?'flex':'none';
+  if(!show||!states.length){row.innerHTML='';return;}
+  row.innerHTML='';
+  states.forEach(state=>{
+    const count=tasks.filter(t=>!t.done&&taskState(t)===state).length;
+    const chip=document.createElement('div');
+    chip.className='flt'+(activeFilter===stateFilterValue(state)?' fs':'');
+    chip.dataset.flt=stateFilterValue(state);
+    chip.textContent=state+' ('+count+')';
+    chip.onclick=()=>setFilter(stateFilterValue(state),chip);
+    row.appendChild(chip);
+  });
+}
+
+function renderGroupedByState(list, filtered){
+  const byState={};
+  filtered.forEach(t=>{
+    const k=taskState(t)||'_none';
+    if(!byState[k]) byState[k]=[];
+    byState[k].push(t);
+  });
+  const keys=Object.keys(byState).sort((a,b)=>a==='_none'?1:b==='_none'?-1:a.localeCompare(b));
+  keys.forEach(key=>{
+    const g=document.createElement('div');
+    g.className='tgrp';
+    const title=key==='_none'?'No state':key;
+    g.innerHTML=`<div class="tglbl" style="color:${key==='_none'?'var(--wmuted)':'#4338ca'}">📍 ${esc(title)} · ${byState[key].length}</div>`;
+    byState[key].sort(sortTasksForList).forEach(t=>g.appendChild(createTaskCard(t)));
+    list.appendChild(g);
+  });
+}
+
+function sortTasksForList(a,b){
+  if(a.due&&!b.due)return -1;
+  if(!a.due&&b.due)return 1;
+  if(a.due&&b.due&&a.due!==b.due)return a.due.localeCompare(b.due);
+  const prioOrder={high:0,med:1,low:2};
+  return (prioOrder[a.priority]||1)-(prioOrder[b.priority]||1);
+}
+
 function renderTasks(){
   const list=document.getElementById('task-list');list.innerHTML='';
+  renderStateFilters();
   let filtered;
   if(activeFilter==='done') filtered=tasks.filter(t=>t.done);
   else if(activeFilter==='all') filtered=tasks.filter(t=>!t.done);
   else if(activeFilter==='high') filtered=tasks.filter(t=>!t.done&&t.priority==='high');
+  else if(activeFilter==='by-state') filtered=tasks.filter(t=>!t.done);
+  else if(activeFilter.startsWith('state:')){
+    const state=activeFilter.slice(6);
+    filtered=tasks.filter(t=>!t.done&&taskState(t)===state);
+  }
   else filtered=tasks.filter(t=>!t.done&&t.category===activeFilter);
 
   if(!filtered.length){
-    list.innerHTML=`<div class="tempty">${activeFilter==='done'?'Nothing completed yet ✅':activeFilter==='high'?'No high-priority tasks ⚡':'No tasks here.\nDump some in chat!'}</div>`;
+    list.innerHTML=`<div class="tempty">${activeFilter==='done'?'Nothing completed yet ✅':activeFilter==='high'?'No high-priority tasks ⚡':activeFilter==='by-state'?'No active tasks to group by state.':activeFilter.startsWith('state:')?'No active tasks for this state.':'No tasks here.\nDump some in chat!'}</div>`;
+    return;
+  }
+
+  if(activeFilter==='by-state'){
+    renderGroupedByState(list, filtered);
     return;
   }
 
   // sort: tasks with due dates first by date, then by priority (high first), then no-date last
-  filtered.sort((a,b)=>{
-    if(a.due&&!b.due)return -1;
-    if(!a.due&&b.due)return 1;
-    if(a.due&&b.due&&a.due!==b.due)return a.due.localeCompare(b.due);
-    const prioOrder={high:0,med:1,low:2};
-    return (prioOrder[a.priority]||1)-(prioOrder[b.priority]||1);
-  });
+  filtered.sort(sortTasksForList);
 
   const groups={};
   filtered.forEach(t=>{const k=t.due||'_nd';if(!groups[k])groups[k]=[];groups[k].push(t);});
@@ -1633,10 +1717,10 @@ function runNotificationCheck(){
 }
 
 /* ─────────── Phase 2: Quick-add shortcuts ─────────── */
-// !w=work, !p=personal, !t=today, !tm=tomorrow, !h=high, !l=low, !m=medium, !d=daily, !wk=weekly
+// !w=work, !p=personal, !t=today, !tm=tomorrow, !h=high, !l=low, !m=medium, !d=daily, !wk=weekly, !mp/!mh/etc=state
 function parseShortcuts(text){
-  const tokens={category:'',due:'',priority:'',recur:''};
-  const cleaned=text.replace(/!(\w+)/g,(m,flag)=>{
+  const tokens={category:'',due:'',priority:'',recur:'',state:''};
+  const cleaned=text.replace(/!([\w.-]+)/g,(m,flag)=>{
     flag=flag.toLowerCase();
     if(flag==='w'||flag==='work'){tokens.category='work';return'';}
     if(flag==='p'||flag==='personal'){tokens.category='personal';return'';}
@@ -1649,6 +1733,8 @@ function parseShortcuts(text){
     if(flag==='daily'){tokens.recur='daily';return'';}
     if(flag==='weekly'){tokens.recur='weekly';return'';}
     if(flag==='monthly'){tokens.recur='monthly';return'';}
+    const state=STATE_HEADER_MAP[flag.replace(/[^\w\s.]/g,'').trim()];
+    if(state){tokens.state=state;return'';}
     return m;
   }).replace(/\s+/g,' ').trim();
   return {text:cleaned, ...tokens};
@@ -1746,7 +1832,7 @@ function saveQuickAdd(){
   const cat=sh.category||(catSel?catSel.dataset.qcat:'');
   const prio=sh.priority||(prioSel?prioSel.dataset.qprio:'med');
   const due=sh.due||quickAddDate;
-  const state=document.getElementById('quickadd-state').value||'';
+  const state=sh.state||document.getElementById('quickadd-state').value||'';
 
   const newTask={
     text: sh.text,
