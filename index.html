@@ -25,17 +25,32 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
   --wwork:#1877f2;--wpersonal:#8b5cf6;
   --whigh:#ef4444;--wmed:#f59e0b;--wlow:#22c55e;
 }
-.app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:#fff}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:#fff;position:relative}
 
-/* header */
+/* ── Header ── */
 .hdr{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 2px;background:var(--wg);min-height:54px;flex-shrink:0}
 .hdr-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .hdr-av{width:38px;height:38px;border-radius:50%;background:var(--wteal);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;letter-spacing:-.5px}
 .hdr-info{flex:1;min-width:0;cursor:pointer}
 .hdr-name{font-size:16px;font-weight:600;color:#fff;line-height:1.2}
-.hdr-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:1px}
-.hdr-icons{display:flex;flex-shrink:0}
-.hdr-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hdr-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hdr-icons{display:flex;flex-shrink:0;position:relative}
+.hdr-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative}
+
+/* search bar (replaces header when open) */
+.search-bar{display:none;align-items:center;gap:8px;padding:8px 12px;background:var(--wg);min-height:54px;flex-shrink:0}
+.search-bar.open{display:flex}
+.app.search-open .hdr{display:none}
+.search-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0}
+.search-input{flex:1;background:#fff;border:none;outline:none;border-radius:24px;padding:9px 14px;font-size:15px;color:#111;font-family:inherit}
+
+/* dropdown menu */
+.menu-pop{position:absolute;top:46px;right:8px;background:#fff;border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.25);padding:6px 0;min-width:180px;z-index:50;display:none}
+.menu-pop.open{display:block}
+.menu-item{padding:11px 18px;font-size:14.5px;color:#111;cursor:pointer;display:flex;align-items:center;gap:10px}
+.menu-item:active{background:#f0f0f0}
+.menu-item.danger{color:#ef4444}
+.menu-divider{height:1px;background:#eee;margin:4px 0}
 
 /* tabs */
 .tabs{display:flex;background:var(--wg);flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
@@ -47,21 +62,16 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
   flex:1;overflow-y:auto;
   background-color:var(--wbg);
   background-image:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23a0998a' fill-opacity='0.09'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z'/%3E%3C/g%3E%3C/svg%3E");
-  padding:6px 0 4px;
-  -webkit-overflow-scrolling:touch;
+  padding:6px 0 4px;-webkit-overflow-scrolling:touch;
 }
 .chat-bg::-webkit-scrollbar{display:none}
-
-/* date pill */
 .date-div{display:flex;justify-content:center;margin:8px 0 4px}
 .date-div span{background:rgba(225,245,254,.9);color:#667781;font-size:12px;padding:4px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.1)}
 
-/* message rows */
+/* bubbles */
 .mrow{display:flex;padding:2px 8px;align-items:flex-end}
 .mrow.out{justify-content:flex-end}
 .mrow.in{justify-content:flex-start}
-
-/* bubbles */
 .bbl{max-width:82%;min-width:72px;padding:7px 9px 4px;border-radius:8px;position:relative;box-shadow:0 1px 1px rgba(0,0,0,.12);word-break:break-word}
 .mrow.out .bbl{background:var(--wout);border-top-right-radius:2px}
 .mrow.in .bbl{background:var(--win);border-top-left-radius:2px}
@@ -72,7 +82,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .bbl-meta{float:right;margin-top:-13px;margin-left:4px;display:flex;align-items:center;gap:3px;font-size:11px;color:var(--wmuted);white-space:nowrap}
 .ticks svg{width:16px;height:10px;display:block}
 
-/* quick replies — appear inside bubble */
+/* quick replies */
 .qrw{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;clear:both}
 .qr{display:inline-flex;align-items:center;padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid;background:#fff;white-space:nowrap;transition:filter .1s}
 .qr:active{filter:brightness(.9)}
@@ -80,32 +90,39 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .qr.b{border-color:var(--wwork);color:var(--wwork)}
 .qr.p{border-color:var(--wpersonal);color:var(--wpersonal)}
 .qr.gr{border-color:#ccc;color:#8696a0}
+.qr.r{border-color:var(--whigh);color:var(--whigh)}
+.qr.o{border-color:var(--wmed);color:var(--wmed)}
 
 /* summary card */
 .scard{margin-top:7px;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;clear:both}
-.srow{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;font-size:13px;background:#f9f9f9;border-bottom:1px solid #efefef}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;font-size:13px;background:#f9f9f9;border-bottom:1px solid #efefef;gap:6px}
 .srow:last-child{border-bottom:none}
-.sname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:56%;color:#111}
-.sright{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.sname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#111;min-width:0}
+.sright{display:flex;gap:4px;align-items:center;flex-shrink:0}
 .cpill{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500}
 .cpill.work{background:#e8f0fe;color:var(--wwork)}
 .cpill.personal{background:#f3e8ff;color:var(--wpersonal)}
 .dpill{font-size:11px;color:var(--wmuted)}
+.ppill{font-size:11px;padding:2px 6px;border-radius:20px;font-weight:500}
+.ppill.high{background:#fee2e2;color:var(--whigh)}
+.ppill.med{background:#fef3c7;color:#a16207}
+.ppill.low{background:#dcfce7;color:#15803d}
 
 /* tasks view */
 .tv{flex:1;overflow-y:auto;background:#f0f2f5;-webkit-overflow-scrolling:touch}
 .tv::-webkit-scrollbar{display:none}
 .frow{display:flex;gap:6px;padding:10px 12px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid #e9edef;flex-shrink:0}
 .frow::-webkit-scrollbar{display:none}
-.flt{font-size:13px;padding:5px 14px;border-radius:20px;border:1.5px solid #d0d0d0;color:var(--wmuted);cursor:pointer;white-space:nowrap;background:#fff;font-weight:500;transition:all .15s}
+.flt{font-size:13px;padding:5px 14px;border-radius:20px;border:1.5px solid #d0d0d0;color:var(--wmuted);cursor:pointer;white-space:nowrap;background:#fff;font-weight:500}
 .flt.fa{background:var(--wteal);color:#fff;border-color:var(--wteal)}
 .flt.fw{background:#e8f0fe;color:var(--wwork);border-color:var(--wwork)}
 .flt.fp{background:#f3e8ff;color:var(--wpersonal);border-color:var(--wpersonal)}
 .flt.fd{background:#dcf8c6;color:var(--wgl);border-color:var(--wgl)}
+.flt.fh{background:#fee2e2;color:var(--whigh);border-color:var(--whigh)}
 .tbody{padding:8px 10px}
 .tgrp{margin-bottom:14px}
 .tglbl{font-size:11.5px;font-weight:600;color:var(--wmuted);margin-bottom:6px;padding:0 2px;text-transform:uppercase;letter-spacing:.04em}
-.tc{display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:4px;box-shadow:0 1px 2px rgba(0,0,0,.07);cursor:pointer;transition:background .1s}
+.tc{display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:4px;box-shadow:0 1px 2px rgba(0,0,0,.07);cursor:pointer;transition:background .1s;position:relative;user-select:none}
 .tc:active{background:#f5f5f5}
 .tc.done{opacity:.45}
 .tc.done .tname{text-decoration:line-through;color:var(--wmuted)}
@@ -114,17 +131,20 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .cksvg{display:none}.tc.done .cksvg{display:block}
 .tbody2{flex:1;min-width:0}
 .tname{font-size:15px;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
-.tmeta{display:flex;gap:6px;align-items:center;margin-top:3px}
+.tmeta{display:flex;gap:6px;align-items:center;margin-top:3px;flex-wrap:wrap}
 .tcat{font-size:12px;font-weight:500}
 .tcat.work{color:var(--wwork)}.tcat.personal{color:var(--wpersonal)}
 .tdate{font-size:12px;color:var(--wmuted)}
 .tdate.overdue{color:var(--whigh)}.tdate.today{color:var(--wmed)}
+.tprio{font-size:11px;font-weight:600}
+.tprio.high{color:var(--whigh)}.tprio.med{color:var(--wmed)}.tprio.low{color:var(--wlow)}
 .pline{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0}
 .pline.high{background:var(--whigh)}.pline.med{background:var(--wmed)}.pline.low{background:var(--wlow)}
 .tempty{padding:48px 20px;text-align:center;color:var(--wmuted);font-size:14px;line-height:1.6}
 
 /* note cards */
-.ncard{display:flex;align-items:flex-start;gap:8px;background:#fffacc;border-radius:8px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.07);border-left:4px solid #f4d03f}
+.ncard{display:flex;align-items:flex-start;gap:8px;background:#fffacc;border-radius:8px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.07);border-left:4px solid #f4d03f;cursor:pointer}
+.ncard:active{background:#fff7b3}
 .ncard-body{flex:1;min-width:0}
 .ncard-text{font-size:14.5px;color:#111;line-height:1.45;word-break:break-word;white-space:pre-wrap}
 .ncard-time{font-size:11px;color:#888;margin-top:6px;font-weight:500}
@@ -135,17 +155,58 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .ibar{display:flex;align-items:flex-end;gap:7px;padding:6px 8px 10px;background:var(--wbg);flex-shrink:0}
 .iwrap{flex:1;background:#fff;border-radius:24px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
 .iemoji{font-size:22px;cursor:pointer;flex-shrink:0;line-height:1;color:#8696a0}
-.iwrap textarea{flex:1;border:none;outline:none;resize:none;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;font-size:15px;color:#111;line-height:1.4;max-height:100px;overflow-y:auto;background:transparent}
+.iwrap textarea{flex:1;border:none;outline:none;resize:none;font-family:inherit;font-size:15px;color:#111;line-height:1.4;max-height:100px;overflow-y:auto;background:transparent}
 .iwrap textarea::placeholder{color:#8696a0}
 .iwrap textarea::-webkit-scrollbar{display:none}
 .isend{width:46px;height:46px;border-radius:50%;background:var(--wteal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.2)}
 .isend:active{opacity:.85;transform:scale(.96)}
+
+/* modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:200}
+.modal-bg.open{display:flex}
+.modal-bg.center{align-items:center}
+.modal{background:#fff;border-radius:16px 16px 0 0;width:100%;max-width:480px;padding:18px 18px 24px;animation:slideUp .2s ease-out}
+.modal.center-modal{border-radius:14px;max-width:340px;margin:0 16px;animation:popIn .15s ease-out}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+.modal h3{font-size:17px;font-weight:600;margin-bottom:6px;color:#111}
+.modal p{font-size:13px;color:var(--wmuted);margin-bottom:14px;line-height:1.5}
+.modal label{font-size:12px;font-weight:600;color:var(--wmuted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:block;margin-top:12px}
+.modal label:first-of-type{margin-top:0}
+.modal input[type=text],.modal textarea,.modal input[type=date]{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff}
+.modal input:focus,.modal textarea:focus{border-color:var(--wteal)}
+.modal textarea{resize:vertical;min-height:60px;line-height:1.4}
+.modal-row{display:flex;gap:8px;margin-top:8px}
+.modal-row .qr{flex:1;justify-content:center}
+.modal-btns{display:flex;gap:8px;margin-top:18px}
+.modal-btn{flex:1;padding:11px;border-radius:8px;font-size:14.5px;font-weight:600;cursor:pointer;border:none;font-family:inherit}
+.modal-btn.primary{background:var(--wteal);color:#fff}
+.modal-btn.secondary{background:#f0f0f0;color:#111}
+.modal-btn.danger{background:#fee2e2;color:var(--whigh)}
+.modal-btn:active{opacity:.85}
+
+/* toast */
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:11px 18px;border-radius:24px;font-size:14px;display:flex;align-items:center;gap:14px;box-shadow:0 4px 12px rgba(0,0,0,.3);z-index:300;opacity:0;transition:opacity .2s;pointer-events:none;max-width:90%}
+.toast.show{opacity:1;pointer-events:auto}
+.toast-undo{color:var(--wteal);font-weight:600;cursor:pointer;font-size:14px;text-transform:uppercase;letter-spacing:.04em}
+.toast-undo:active{opacity:.8}
+
+/* search results */
+.sr-section{padding:8px 10px}
+.sr-h{font-size:12px;font-weight:700;color:var(--wmuted);padding:8px 4px;text-transform:uppercase;letter-spacing:.05em}
+.sr-empty{padding:40px 20px;text-align:center;color:var(--wmuted);font-size:14px}
+
+mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2px}
+
+/* long-press hint flash */
+@keyframes pulse{0%,100%{background:#fff}50%{background:#e3f2fd}}
+.tc.flash{animation:pulse .3s}
 </style>
 </head>
 <body>
-<div class="app">
+<div class="app" id="app">
 
-  <div class="hdr">
+  <div class="hdr" id="hdr">
     <div class="hdr-back"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M9 1L1 8.5 9 16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="hdr-av">TD</div>
     <div class="hdr-info">
@@ -153,16 +214,29 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
       <div class="hdr-sub" id="hdr-sub">tap to manage tasks</div>
     </div>
     <div class="hdr-icons">
-      <div class="hdr-btn" onclick="switchTab('tasks')">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      <div class="hdr-btn" onclick="openSearch()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
       </div>
-      <div class="hdr-btn" onclick="showMenu()">
+      <div class="hdr-btn" onclick="toggleMenu(event)">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+      </div>
+      <div class="menu-pop" id="menu-pop">
+        <div class="menu-item" onclick="exportData()">📥 Export data</div>
+        <div class="menu-item" onclick="closeMenu();openSearch()">🔍 Search</div>
+        <div class="menu-divider"></div>
+        <div class="menu-item danger" onclick="confirmClearChat()">🧹 Clear chat</div>
       </div>
     </div>
   </div>
 
-  <div class="tabs">
+  <div class="search-bar" id="search-bar">
+    <div class="search-back" onclick="closeSearch()">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+    </div>
+    <input type="text" class="search-input" id="search-input" placeholder="Search tasks and notes…"/>
+  </div>
+
+  <div class="tabs" id="tabs">
     <div class="tab active" id="tab-chat" onclick="switchTab('chat')">CHAT</div>
     <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">TASKS</div>
     <div class="tab" id="tab-notes" onclick="switchTab('notes')">NOTES</div>
@@ -172,16 +246,21 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 
   <div class="tv" id="tasks-view" style="display:none">
     <div class="frow">
-      <div class="flt fa" onclick="setFilter('all',this)">All</div>
-      <div class="flt" onclick="setFilter('work',this)">Work</div>
-      <div class="flt" onclick="setFilter('personal',this)">Personal</div>
-      <div class="flt" onclick="setFilter('done',this)">Done</div>
+      <div class="flt fa" data-flt="all" onclick="setFilter('all',this)">All</div>
+      <div class="flt" data-flt="high" onclick="setFilter('high',this)">⚡ Priority</div>
+      <div class="flt" data-flt="work" onclick="setFilter('work',this)">Work</div>
+      <div class="flt" data-flt="personal" onclick="setFilter('personal',this)">Personal</div>
+      <div class="flt" data-flt="done" onclick="setFilter('done',this)">Done</div>
     </div>
     <div class="tbody" id="task-list"></div>
   </div>
 
   <div class="tv" id="notes-view" style="display:none">
     <div class="tbody" id="notes-list" style="padding-top:14px"></div>
+  </div>
+
+  <div class="tv" id="search-view" style="display:none">
+    <div class="tbody" id="search-results"></div>
   </div>
 
   <div class="ibar" id="input-bar">
@@ -193,17 +272,81 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
   </div>
+
+  <!-- Edit task modal -->
+  <div class="modal-bg" id="edit-modal">
+    <div class="modal">
+      <h3>Edit task</h3>
+      <label>Task</label>
+      <textarea id="edit-text" rows="2"></textarea>
+      <label>Due date</label>
+      <input type="date" id="edit-date"/>
+      <label>Category</label>
+      <div class="modal-row">
+        <div class="qr b" data-cat="work" onclick="pickEditCat(this)">💼 Work</div>
+        <div class="qr p" data-cat="personal" onclick="pickEditCat(this)">🏠 Personal</div>
+        <div class="qr gr" data-cat="" onclick="pickEditCat(this)">None</div>
+      </div>
+      <label>Priority</label>
+      <div class="modal-row">
+        <div class="qr r" data-prio="high" onclick="pickEditPrio(this)">High</div>
+        <div class="qr o" data-prio="med" onclick="pickEditPrio(this)">Med</div>
+        <div class="qr g" data-prio="low" onclick="pickEditPrio(this)">Low</div>
+      </div>
+      <div class="modal-btns">
+        <button class="modal-btn danger" onclick="deleteTaskFromEdit()">Delete</button>
+        <button class="modal-btn secondary" onclick="closeEdit()">Cancel</button>
+        <button class="modal-btn primary" onclick="saveEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit note modal -->
+  <div class="modal-bg" id="note-modal">
+    <div class="modal">
+      <h3>Edit note</h3>
+      <textarea id="note-text" rows="5" placeholder="Your note…"></textarea>
+      <div class="modal-btns">
+        <button class="modal-btn danger" onclick="deleteNoteFromEdit()">Delete</button>
+        <button class="modal-btn secondary" onclick="closeNote()">Cancel</button>
+        <button class="modal-btn primary" onclick="saveNoteEdit()">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom date picker modal -->
+  <div class="modal-bg" id="date-modal">
+    <div class="modal">
+      <h3>Pick a date</h3>
+      <input type="date" id="custom-date"/>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="closeDatePicker()">Cancel</button>
+        <button class="modal-btn primary" onclick="confirmDatePicker()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confirm dialog -->
+  <div class="modal-bg center" id="confirm-modal">
+    <div class="modal center-modal">
+      <h3 id="confirm-title">Confirm</h3>
+      <p id="confirm-msg">Are you sure?</p>
+      <div class="modal-btns">
+        <button class="modal-btn secondary" onclick="closeConfirm()">Cancel</button>
+        <button class="modal-btn danger" id="confirm-ok">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast">
+    <span id="toast-msg"></span>
+    <span class="toast-undo" id="toast-undo" onclick="doUndo()">UNDO</span>
+  </div>
 </div>
 
 <script>
-// Service worker registration for offline support
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('sw.js').catch(()=>{});
-  });
-}
-
-// Storage keys
+/* ─────────── Storage ─────────── */
 const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1', LS_CHAT='td_chat_v1';
 function saveAll(){
   try{
@@ -212,11 +355,7 @@ function saveAll(){
   }catch(e){}
 }
 function saveChat(){
-  try{
-    // keep only last 200 messages to stay small
-    const trimmed=chatLog.slice(-200);
-    localStorage.setItem(LS_CHAT, JSON.stringify(trimmed));
-  }catch(e){}
+  try{ localStorage.setItem(LS_CHAT, JSON.stringify(chatLog.slice(-200))); }catch(e){}
 }
 function loadAll(){
   try{
@@ -226,17 +365,30 @@ function loadAll(){
   }catch(e){}
 }
 
-let tasks=[],notes=[],chatLog=[],pending=[],pendingNotes=[],step=null,activeFilter='all';
+/* ─────────── State ─────────── */
+let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all';
+let editingTaskId=null, editingNoteId=null, datePickerCallback=null, datePickerCurrentValue='';
+let undoState=null, toastTimer=null;
+let pressTimer=null, longPressed=false;
+
 const chatEl=document.getElementById('chat-view');
 const inp=document.getElementById('msg-input');
+
+/* ─────────── Service Worker ─────────── */
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+}
+
+/* ─────────── Utils ─────────── */
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const ticks=(r)=>`<svg viewBox="0 0 16 11" fill="none"><path d="M1 5.5l3.5 3.5L11 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5l3.5 3.5L15 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const uid=()=>Date.now()+'_'+Math.random().toString(36).slice(2,8);
 
 inp.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
-const ticks=(r)=>`<svg viewBox="0 0 16 11" fill="none"><path d="M1 5.5l3.5 3.5L11 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5l3.5 3.5L15 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
+/* ─────────── Chat rendering ─────────── */
 function addMsg(html,side,opts){
   opts=opts||{};
   const out=side==='user';
@@ -247,7 +399,6 @@ function addMsg(html,side,opts){
   row.innerHTML=`<div class="bbl"><div class="bbl-txt">${out?esc(html):html}</div>${meta}</div>`;
   chatEl.appendChild(row);
   chatEl.scrollTop=chatEl.scrollHeight;
-  // Log to chat history (skip if explicitly told not to, e.g. when replaying)
   if(!opts.noLog){
     chatLog.push({html, side: side||'bot', time: t, ts: Date.now()});
     saveChat();
@@ -255,17 +406,11 @@ function addMsg(html,side,opts){
   return row;
 }
 
-function replayChat(){
-  // Render saved messages without re-saving them
-  chatLog.forEach(m=>{
-    addMsg(m.html, m.side, {time: m.time, noLog: true});
-  });
-}
+function replayChat(){chatLog.forEach(m=>addMsg(m.html, m.side, {time:m.time, noLog:true}));}
 
 function addQR(opts){
   const rows=chatEl.querySelectorAll('.mrow.in');
-  const last=rows[rows.length-1];
-  if(!last)return;
+  const last=rows[rows.length-1]; if(!last) return;
   const bbl=last.querySelector('.bbl');
   const w=document.createElement('div');
   w.className='qrw';w.id='qr-active';
@@ -280,7 +425,7 @@ function addQR(opts){
 }
 const rmQR=()=>{const q=document.getElementById('qr-active');if(q)q.remove();};
 
-/* date helpers */
+/* ─────────── Date helpers ─────────── */
 const isoToday=()=>new Date().toISOString().split('T')[0];
 const isoOff=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];};
 const isoWeekday=(n)=>{const d=new Date();const diff=(n-d.getDay()+7)%7||7;d.setDate(d.getDate()+diff);return d.toISOString().split('T')[0];};
@@ -296,13 +441,17 @@ function fmtDate(iso){
 function dStatus(iso){
   if(!iso)return'';
   const d=new Date(iso+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);
-  return Math.round((d-t)/86400000)<0?'overdue':Math.round((d-t)/86400000)===0?'today':'';
+  const diff=Math.round((d-t)/86400000);
+  return diff<0?'overdue':diff===0?'today':'';
 }
 function resolveDue(v){
+  if(!v||v==='skip')return'';
   if(v==='today')return isoToday();
   if(v==='tomorrow')return isoOff(1);
   if(v==='thisweek')return isoWeekday(5);
   if(v==='nextweek')return isoOff(7);
+  if(v==='custom')return'__custom__'; // sentinel
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v))return v;
   return'';
 }
 const dateOpts=()=>[
@@ -310,8 +459,73 @@ const dateOpts=()=>[
   {l:'Tomorrow',v:'tomorrow',c:'g'},
   {l:'This week',v:'thisweek',c:'gr'},
   {l:'Next week',v:'nextweek',c:'gr'},
+  {l:'📅 Pick…',v:'custom',c:'gr'},
   {l:'Skip ›',v:'skip',c:'gr'},
 ];
+
+/* ─────────── Natural date parsing ─────────── */
+function extractDate(text){
+  const lower=text.toLowerCase();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const dayMap={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,tues:2,wed:3,thu:4,thurs:4,fri:5,sat:6};
+
+  let due='';
+  let cleaned=text;
+  let matched=null;
+
+  // "today"
+  if(/\b(today|tonight|by\s+today)\b/i.test(lower)){due=isoToday();matched=lower.match(/\b(today|tonight|by\s+today)\b/i)[0];}
+  // "tomorrow"
+  else if(/\btomorrow\b/i.test(lower)){due=isoOff(1);matched='tomorrow';}
+  // "next week" / "this week"
+  else if(/\bnext\s+week\b/i.test(lower)){due=isoOff(7);matched=lower.match(/\bnext\s+week\b/i)[0];}
+  else if(/\bthis\s+week\b/i.test(lower)){due=isoWeekday(5);matched=lower.match(/\bthis\s+week\b/i)[0];}
+  // "in N days"
+  else if(/\bin\s+(\d+)\s+days?\b/i.test(lower)){const m=lower.match(/\bin\s+(\d+)\s+days?\b/i);due=isoOff(parseInt(m[1]));matched=m[0];}
+  // "by Friday" / "on Friday" / "next Friday"
+  else {
+    const dayPattern=/\b(?:by|on|next|this)?\s*(sunday|monday|tuesday|wednesday|thursday|thurs|tues|friday|saturday|sun|mon|tue|wed|thu|fri|sat)\b/i;
+    const m=lower.match(dayPattern);
+    if(m){
+      const day=dayMap[m[1].toLowerCase()];
+      if(day!==undefined){due=isoWeekday(day);matched=m[0];}
+    }
+  }
+
+  // "by 15th May" / "on May 15" / "15/5" / "15-05-2026"
+  if(!due){
+    const m1=text.match(/\b(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?\b/);
+    if(m1){
+      const day=parseInt(m1[1]),mon=parseInt(m1[2])-1;
+      let yr=m1[3]?parseInt(m1[3]):today.getFullYear();
+      if(yr<100) yr+=2000;
+      const d=new Date(yr,mon,day);
+      if(!isNaN(d.getTime())){due=d.toISOString().split('T')[0];matched=m1[0];}
+    }
+  }
+
+  if(matched){
+    cleaned=text.replace(new RegExp('\\s*\\b'+matched.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b\\s*','i'),' ').replace(/\s+/g,' ').trim();
+    cleaned=cleaned.replace(/^(by|on|at)\s+/i,'').trim();
+  }
+
+  return {due, text: cleaned||text};
+}
+
+/* ─────────── Classifier ─────────── */
+function classify(s){
+  const lower=s.toLowerCase().trim();
+  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|remind|ask|tell|share|upload|download|install|setup|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop)\b/i;
+  const taskHints=/(need to|have to|gotta|must|should|to-?do|reminder|deadline|by\s(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|next|this))/i;
+  const noteHints=/^(my |the |password|wifi|address|phone|email is|account|username|note:|fyi|info:|remember:|btw|note that|just so)/i;
+  const noteFacts=/\b(is|are|was|were)\s/i;
+  const looksLikeData=/^(\+?\d[\d\-\s]{5,}|[a-zA-Z0-9_]{8,}@|https?:\/\/|wifi|pwd|pin|code|otp)/i;
+  if(taskVerbs.test(s)||taskHints.test(s))return 'task';
+  if(noteHints.test(s)||looksLikeData.test(s))return 'note';
+  if(s.split(/\s+/).length<=4)return 'task';
+  if(noteFacts.test(s)&&!taskVerbs.test(s))return 'note';
+  return 'unsure';
+}
 
 function parseDump(t){
   return t.split(/[\n,;]+/)
@@ -319,35 +533,12 @@ function parseDump(t){
     .filter(s=>s.length>2);
 }
 
-// Classify a string as 'task' | 'note' | 'unsure'
-function classify(s){
-  const lower=s.toLowerCase().trim();
-
-  // Strong task signals: action verbs at start
-  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|pick up|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|followup|remind|ask|tell|share|upload|download|install|setup|set up|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop|drop off|dropoff)\b/i;
-
-  // Imperative + task hints
-  const taskHints=/(need to|have to|gotta|must|should|to-?do|reminder|deadline|by\s(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|next|this))/i;
-
-  // Note signals: factual statements, info-keeping
-  const noteHints=/^(my |the |password|wifi|address|phone|email is|account|username|note:|fyi|info:|remember:|btw|note that|just so)/i;
-  const noteFacts=/\b(is|are|was|were)\s/i; // "the meeting is monday" style facts
-
-  // Numbers/codes/passwords/addresses
-  const looksLikeData=/^(\+?\d[\d\-\s]{5,}|[a-zA-Z0-9_]{8,}@|https?:\/\/|wifi|pwd|pin|code|otp)/i;
-
-  if(taskVerbs.test(s)||taskHints.test(s)) return 'task';
-  if(noteHints.test(s)||looksLikeData.test(s)) return 'note';
-  // Short fragment, no verb → likely a task name (e.g. "groceries", "dentist appointment")
-  if(s.split(/\s+/).length<=4) return 'task';
-  // Has a "is/are/was" without action verb → note
-  if(noteFacts.test(s)&&!taskVerbs.test(s)) return 'note';
-  return 'unsure';
-}
-
+/* ─────────── Main flow ─────────── */
 function sendMsg(){
   const t=inp.value.trim();
-  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat')){rmQR();handleReply('skip','Skip');return;}
+  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat'||step.type==='priority'||step.type==='bulk_prio')){
+    rmQR();handleReply('skip','Skip');return;
+  }
   if(!t)return;
   inp.value='';inp.style.height='auto';
   rmQR();handleReply(t,t);
@@ -359,36 +550,38 @@ function handleReply(value,label){
     const p=parseDump(label);
     if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines 😊");return;}
 
-    // Triage: tasks vs notes vs unsure
-    const items=p.map(text=>({text,kind:classify(text)}));
+    const items=p.map(text=>{
+      const k=classify(text);
+      if(k==='task'){
+        const d=extractDate(text);
+        return {kind:k, text:d.text, autoDue:d.due};
+      }
+      return {kind:k, text, autoDue:''};
+    });
+
     const definiteNotes=items.filter(i=>i.kind==='note').map(i=>i.text);
-    const definiteTasks=items.filter(i=>i.kind==='task').map(i=>i.text);
+    const definiteTasks=items.filter(i=>i.kind==='task').map(i=>({text:i.text, due:i.autoDue||'', category:'', priority:'med'}));
     const unsure=items.filter(i=>i.kind==='unsure').map(i=>i.text);
 
-    // Save notes immediately
-    definiteNotes.forEach(n=>notes.push({text:n,id:Date.now()+Math.random(),at:new Date().toISOString()}));
-    if(definiteNotes.length) saveAll();
+    if(definiteNotes.length){
+      definiteNotes.forEach(n=>notes.push({text:n, id:uid(), at:new Date().toISOString()}));
+      saveAll();
+    }
 
-    // If everything is notes
-    if(definiteTasks.length===0&&unsure.length===0&&definiteNotes.length>0){
+    if(!definiteTasks.length && !unsure.length && definiteNotes.length){
       const list=definiteNotes.map(n=>`<div style="padding:2px 0;color:#333;font-size:14px">📝 ${esc(n)}</div>`).join('');
       addMsg(`Saved as <b>note${definiteNotes.length>1?'s':''}</b>:<div style="margin:6px 0 4px">${list}</div>`);
-      updateSub();
-      return;
+      updateSub();return;
     }
 
-    // If unsure items exist, ask user
-    if(unsure.length>0){
-      pendingNotes=definiteNotes;
-      pending=definiteTasks.map(t=>({text:t,due:'',category:'',priority:'med'}));
-      step={type:'classify',unsure,idx:0};
-      askClassify();
-      return;
+    if(unsure.length){
+      pending=definiteTasks;
+      step={type:'classify', unsure, idx:0};
+      askClassify();return;
     }
 
-    // All tasks (no unsure)
-    pending=definiteTasks.map(t=>({text:t,due:'',category:'',priority:'med'}));
-    if(definiteNotes.length>0){
+    pending=definiteTasks;
+    if(definiteNotes.length){
       const nl=definiteNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px">📝 ${esc(n)}</div>`).join('');
       addMsg(`Saved <b>${definiteNotes.length} note${definiteNotes.length>1?'s':''}</b>:<div style="margin:5px 0 2px">${nl}</div>`);
     }
@@ -398,43 +591,33 @@ function handleReply(value,label){
     addMsg(label,'user');
     const cur=step.unsure[step.idx];
     if(value==='task'){
-      pending.push({text:cur,due:'',category:'',priority:'med'});
+      const d=extractDate(cur);
+      pending.push({text:d.text, due:d.due||'', category:'', priority:'med'});
     } else if(value==='note'){
-      notes.push({text:cur,id:Date.now()+Math.random(),at:new Date().toISOString()});
+      notes.push({text:cur, id:uid(), at:new Date().toISOString()});
       saveAll();
-    } else if(value==='skip'){
-      // skip — drop
     }
     step.idx++;
-    if(step.idx<step.unsure.length){
-      askClassify();
-    } else {
-      updateSub();
-      if(pending.length===0){
-        const noteCount=notes.length-(pending.length); // approximation
-        addMsg(`✅ Done! Notes saved.`);
-        step=null;
-        return;
-      }
-      startTaskFlow();
-    }
+    if(step.idx<step.unsure.length){askClassify();}
+    else{updateSub();if(!pending.length){addMsg('✅ Done! Notes saved.');step=null;return;}startTaskFlow();}
 
   } else if(step.type==='bulk_due'){
     addMsg(label,'user');
-    if(value==='individual'){
+    if(value==='custom'){
+      openDatePicker('',iso=>{
+        if(!iso){rmQR();return;}
+        pending.forEach(t=>{if(!t.due)t.due=iso;});
+        addMsg(`Got it — all due <b>${fmtDate(iso)}</b>.`,'bot');
+        afterBulkDue();
+      });
+    } else if(value==='individual'){
       step={type:'due',idx:0};
-      addMsg(`OK! <b>${esc(pending[0].text)}</b> — when is it due?`);
+      addMsg(`OK! <b>${esc(pending[0].text)}</b> — when is it due?${pending[0].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[0].due)+'</span>':''}`);
       setTimeout(()=>addQR(dateOpts()),30);
     } else {
-      pending.forEach(t=>t.due=resolveDue(value));
-      step={type:'bulk_cat'};
-      addMsg('Are these <b>Work</b> or <b>Personal</b>?');
-      setTimeout(()=>addQR([
-        {l:'💼 Work — all',v:'work',c:'b'},
-        {l:'🏠 Personal — all',v:'personal',c:'p'},
-        {l:'Set one by one',v:'individual',c:'gr'},
-        {l:'Skip ›',v:'skip',c:'gr'},
-      ]),30);
+      const due=resolveDue(value);
+      pending.forEach(t=>{if(!t.due)t.due=due;});
+      afterBulkDue();
     }
 
   } else if(step.type==='bulk_cat'){
@@ -444,43 +627,60 @@ function handleReply(value,label){
       addMsg(`Is <b>${esc(pending[0].text)}</b> work or personal?`);
       setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
     } else if(value==='skip'){
-      // No category, save as is
       pending.forEach(t=>t.category='');
-      finishFlow();
+      askBulkPriority();
     } else {
       pending.forEach(t=>t.category=value);
-      finishFlow();
+      askBulkPriority();
     }
+
+  } else if(step.type==='bulk_prio'){
+    addMsg(label,'user');
+    const v=value==='skip'?'med':value;
+    pending.forEach(t=>t.priority=v);
+    finishFlow();
 
   } else if(step.type==='due'){
     addMsg(label,'user');
-    pending[step.idx].due=resolveDue(value);
-    const i=step.idx;
-    step={type:'category',idx:i};
-    setTimeout(()=>{
-      addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
-      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
-    },220);
+    if(value==='custom'){
+      const cur=pending[step.idx];
+      openDatePicker(cur.due||'',iso=>{
+        if(iso){cur.due=iso;}
+        const i=step.idx;
+        addMsg(`Got it — due <b>${cur.due?fmtDate(cur.due):'No date'}</b>.`,'bot');
+        step={type:'category',idx:i};
+        askIndivCat(i);
+      });
+    } else {
+      pending[step.idx].due=resolveDue(value);
+      const i=step.idx;
+      step={type:'category',idx:i};
+      setTimeout(()=>askIndivCat(i),200);
+    }
 
   } else if(step.type==='category'){
     addMsg(label,'user');
     pending[step.idx].category=(value==='skip'?'':value);
+    const i=step.idx;
+    step={type:'priority',idx:i};
+    setTimeout(()=>askIndivPrio(i),200);
+
+  } else if(step.type==='priority'){
+    addMsg(label,'user');
+    pending[step.idx].priority=(value==='skip'?'med':value);
     const next=step.idx+1;
     if(next<pending.length){
       step={type:'due',idx:next};
       setTimeout(()=>{
-        addMsg(`<b>${esc(pending[next].text)}</b> — when is it due?`);
+        addMsg(`<b>${esc(pending[next].text)}</b> — when is it due?${pending[next].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[next].due)+'</span>':''}`);
         setTimeout(()=>addQR(dateOpts()),30);
-      },220);
-    } else {
-      finishFlow();
-    }
+      },200);
+    } else {finishFlow();}
   }
 }
 
 function askClassify(){
   const cur=step.unsure[step.idx];
-  const remaining=step.unsure.length-step.idx;
   addMsg(`Is <b>"${esc(cur)}"</b> a task or just info to remember?`);
   setTimeout(()=>addQR([
     {l:'✓ Task',v:'task',c:'g'},
@@ -492,47 +692,81 @@ function askClassify(){
 function startTaskFlow(){
   if(pending.length===1){
     step={type:'due',idx:0};
-    addMsg(`<b>${esc(pending[0].text)}</b><br>When is it due?`);
+    const auto=pending[0].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[0].due)+'</span>':'';
+    addMsg(`<b>${esc(pending[0].text)}</b><br>When is it due?${auto}`);
     setTimeout(()=>addQR(dateOpts()),30);
   } else if(pending.length>1){
     step={type:'bulk_due'};
-    const li=pending.map(t=>`<div style="padding:2px 0;color:#333;font-size:14px">· ${esc(t.text)}</div>`).join('');
-    addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b> 👇<div style="margin:7px 0 3px">${li}</div>Due date for <b>all of them</b>?`);
-    setTimeout(()=>addQR([...dateOpts(),{l:'Set one by one',v:'individual',c:'gr'}]),30);
+    const li=pending.map(t=>`<div style="padding:2px 0;color:#333;font-size:14px">· ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`).join('');
+    const allDated=pending.every(t=>t.due);
+    addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b> 👇<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for the rest?'}`);
+    if(allDated){
+      step={type:'bulk_cat'};
+      setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+    } else {
+      setTimeout(()=>addQR([...dateOpts(),{l:'Set one by one',v:'individual',c:'gr'}]),30);
+    }
   }
 }
 
+function afterBulkDue(){
+  step={type:'bulk_cat'};
+  addMsg('Are these <b>Work</b> or <b>Personal</b>?');
+  setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+}
+
+function askBulkPriority(){
+  step={type:'bulk_prio'};
+  addMsg('Priority?');
+  setTimeout(()=>addQR([{l:'⚡ High',v:'high',c:'r'},{l:'Medium',v:'med',c:'o'},{l:'Low',v:'low',c:'g'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+}
+
+function askIndivCat(i){
+  addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
+  setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+}
+
+function askIndivPrio(i){
+  addMsg(`Priority for <b>${esc(pending[i].text)}</b>?`);
+  setTimeout(()=>addQR([{l:'⚡ High',v:'high',c:'r'},{l:'Medium',v:'med',c:'o'},{l:'Low',v:'low',c:'g'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+}
+
 function finishFlow(){
-  pending.forEach(t=>tasks.push({...t,done:false,id:Date.now()+Math.random()}));
-  saveAll();
-  updateSub();
-  const rows=pending.map(t=>`<div class="srow"><span class="sname">${esc(t.text)}</span><span class="sright"><span class="cpill ${t.category}">${t.category||'—'}</span><span class="dpill">${t.due?fmtDate(t.due):'No date'}</span></span></div>`).join('');
+  pending.forEach(t=>tasks.push({...t, done:false, id:uid(), createdAt:Date.now()}));
+  saveAll();updateSub();
+  const rows=pending.map(t=>`
+    <div class="srow">
+      <span class="sname">${esc(t.text)}</span>
+      <span class="sright">
+        ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'⚡':''}${t.priority}</span>`:''}
+        ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
+        <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
+      </span>
+    </div>`).join('');
   addMsg(`✅ Added <b>${pending.length}</b> task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
   pending=[];step=null;
 }
 
 function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever 😊");}
 
-/* tabs */
+/* ─────────── Tabs ─────────── */
 function switchTab(t){
-  document.getElementById('tab-chat').classList.toggle('active',t==='chat');
-  document.getElementById('tab-tasks').classList.toggle('active',t==='tasks');
-  document.getElementById('tab-notes').classList.toggle('active',t==='notes');
+  closeSearch();
+  ['chat','tasks','notes'].forEach(name=>{
+    const tab=document.getElementById('tab-'+name);
+    if(tab) tab.classList.toggle('active',t===name);
+  });
   chatEl.style.display=t==='chat'?'block':'none';
   document.getElementById('tasks-view').style.display=t==='tasks'?'flex':'none';
   document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
+  document.getElementById('search-view').style.display='none';
   document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
-  if(t==='tasks'){
-    document.getElementById('tasks-view').style.flexDirection='column';
-    renderTasks();
-  } else if(t==='notes'){
-    document.getElementById('notes-view').style.flexDirection='column';
-    renderNotes();
-  }
+  if(t==='tasks'){document.getElementById('tasks-view').style.flexDirection='column';renderTasks();}
+  else if(t==='notes'){document.getElementById('notes-view').style.flexDirection='column';renderNotes();}
+  else if(t==='chat'){chatEl.scrollTop=chatEl.scrollHeight;}
 }
 
-/* filter */
-const fmap={all:'fa',work:'fw',personal:'fp',done:'fd'};
+const fmap={all:'fa',work:'fw',personal:'fp',done:'fd',high:'fh'};
 function setFilter(f,el){
   activeFilter=f;
   document.querySelectorAll('.flt').forEach(x=>{x.className='flt';});
@@ -542,88 +776,375 @@ function setFilter(f,el){
 
 function updateSub(){
   const n=tasks.filter(t=>!t.done).length;
-  const nn=notes.length;
+  const today=tasks.filter(t=>!t.done&&t.due===isoToday()).length;
+  const overdue=tasks.filter(t=>!t.done&&t.due&&dStatus(t.due)==='overdue').length;
   let txt=n+' task'+(n!==1?'s':'');
-  if(nn>0) txt+=' · '+nn+' note'+(nn!==1?'s':'');
-  document.getElementById('hdr-sub').textContent=txt;
+  if(overdue>0) txt+=' · '+overdue+' overdue';
+  else if(today>0) txt+=' · '+today+' today';
+  document.getElementById('hdr-sub').textContent=txt||'tap to manage tasks';
 }
 
+/* ─────────── Tasks list ─────────── */
 function renderTasks(){
   const list=document.getElementById('task-list');list.innerHTML='';
-  let filtered=activeFilter==='done'?tasks.filter(t=>t.done):activeFilter==='all'?tasks.filter(t=>!t.done):tasks.filter(t=>!t.done&&t.category===activeFilter);
-  if(!filtered.length){list.innerHTML=`<div class="tempty">${activeFilter==='done'?'Nothing completed yet ✅':'No tasks here.\nDump some tasks in chat!'}</div>`;return;}
+  let filtered;
+  if(activeFilter==='done') filtered=tasks.filter(t=>t.done);
+  else if(activeFilter==='all') filtered=tasks.filter(t=>!t.done);
+  else if(activeFilter==='high') filtered=tasks.filter(t=>!t.done&&t.priority==='high');
+  else filtered=tasks.filter(t=>!t.done&&t.category===activeFilter);
+
+  if(!filtered.length){
+    list.innerHTML=`<div class="tempty">${activeFilter==='done'?'Nothing completed yet ✅':activeFilter==='high'?'No high-priority tasks ⚡':'No tasks here.\nDump some in chat!'}</div>`;
+    return;
+  }
+
+  // sort: tasks with due dates first by date, then by priority (high first), then no-date last
+  filtered.sort((a,b)=>{
+    if(a.due&&!b.due)return -1;
+    if(!a.due&&b.due)return 1;
+    if(a.due&&b.due&&a.due!==b.due)return a.due.localeCompare(b.due);
+    const prioOrder={high:0,med:1,low:2};
+    return (prioOrder[a.priority]||1)-(prioOrder[b.priority]||1);
+  });
+
   const groups={};
   filtered.forEach(t=>{const k=t.due||'_nd';if(!groups[k])groups[k]=[];groups[k].push(t);});
+
   Object.keys(groups).sort((a,b)=>a==='_nd'?1:b==='_nd'?-1:a.localeCompare(b)).forEach(key=>{
     const g=document.createElement('div');g.className='tgrp';
     const ds=dStatus(key);
     const lc=ds==='overdue'?'var(--whigh)':ds==='today'?'var(--wmed)':'var(--wmuted)';
     g.innerHTML=`<div class="tglbl" style="color:${lc}">${key==='_nd'?'No date':fmtDate(key)}</div>`;
     groups[key].forEach(t=>{
-      const c=document.createElement('div');c.className='tc'+(t.done?' done':'');
-      const ds2=dStatus(t.due);
-      c.innerHTML=`<div class="pline ${t.priority}"></div><div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tbody2"><div class="tname">${esc(t.text)}</div><div class="tmeta">${t.category?`<span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>`:''}${t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:''}${!t.category&&!t.due?`<span class="tdate">No date</span>`:''}</div></div>`;
-      c.onclick=()=>{t.done=!t.done;saveAll();renderTasks();updateSub();};
+      const c=createTaskCard(t);
       g.appendChild(c);
     });
     list.appendChild(g);
   });
 }
 
+function createTaskCard(t){
+  const c=document.createElement('div');
+  c.className='tc'+(t.done?' done':'');
+  c.dataset.id=t.id;
+  const ds2=dStatus(t.due);
+  const prioBit=t.priority&&t.priority!=='med'?`<span class="tprio ${t.priority}">${t.priority==='high'?'⚡ High':'Low'}</span>`:'';
+  const catBit=t.category?`<span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>`:'';
+  const dateBit=t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:'';
+  const meta=(prioBit||catBit||dateBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}</div>`:'';
+  c.innerHTML=`
+    <div class="pline ${t.priority||'med'}"></div>
+    <div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="tbody2">
+      <div class="tname">${esc(t.text)}</div>
+      ${meta}
+    </div>`;
+
+  // Tap toggles done; long-press opens edit
+  c.addEventListener('pointerdown',e=>{
+    longPressed=false;
+    pressTimer=setTimeout(()=>{longPressed=true;openEdit(t.id);if(navigator.vibrate)navigator.vibrate(40);},500);
+  });
+  c.addEventListener('pointerup',e=>{
+    clearTimeout(pressTimer);
+    if(!longPressed){toggleDone(t.id);}
+  });
+  c.addEventListener('pointerleave',()=>clearTimeout(pressTimer));
+  c.addEventListener('pointercancel',()=>clearTimeout(pressTimer));
+  return c;
+}
+
+function toggleDone(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  const wasDone=t.done;
+  t.done=!t.done;
+  saveAll();renderTasks();updateSub();
+  if(!wasDone){
+    showToast('Task completed',()=>{t.done=false;saveAll();renderTasks();updateSub();});
+  }
+}
+
+/* ─────────── Edit task modal ─────────── */
+function openEdit(id){
+  const t=tasks.find(x=>x.id===id); if(!t)return;
+  editingTaskId=id;
+  document.getElementById('edit-text').value=t.text;
+  document.getElementById('edit-date').value=t.due||'';
+  document.querySelectorAll('#edit-modal [data-cat]').forEach(b=>{
+    b.style.opacity=(b.dataset.cat===(t.category||''))?'1':'.4';
+    b.style.background=(b.dataset.cat===(t.category||''))?'#f0f7ff':'#fff';
+  });
+  document.querySelectorAll('#edit-modal [data-prio]').forEach(b=>{
+    b.style.opacity=(b.dataset.prio===(t.priority||'med'))?'1':'.4';
+    b.style.background=(b.dataset.prio===(t.priority||'med'))?'#fff5e6':'#fff';
+  });
+  document.getElementById('edit-modal').classList.add('open');
+}
+
+function closeEdit(){
+  document.getElementById('edit-modal').classList.remove('open');
+  editingTaskId=null;
+}
+
+function pickEditCat(el){
+  document.querySelectorAll('#edit-modal [data-cat]').forEach(b=>{b.style.opacity='.4';b.style.background='#fff';});
+  el.style.opacity='1';el.style.background='#f0f7ff';
+}
+function pickEditPrio(el){
+  document.querySelectorAll('#edit-modal [data-prio]').forEach(b=>{b.style.opacity='.4';b.style.background='#fff';});
+  el.style.opacity='1';el.style.background='#fff5e6';
+}
+
+function saveEdit(){
+  const t=tasks.find(x=>x.id===editingTaskId); if(!t)return;
+  t.text=document.getElementById('edit-text').value.trim()||t.text;
+  t.due=document.getElementById('edit-date').value||'';
+  const catSel=document.querySelector('#edit-modal [data-cat][style*="opacity: 1"]');
+  const prioSel=document.querySelector('#edit-modal [data-prio][style*="opacity: 1"]');
+  t.category=catSel?catSel.dataset.cat:'';
+  t.priority=prioSel?prioSel.dataset.prio:'med';
+  saveAll();
+  closeEdit();
+  renderTasks();updateSub();
+  showToast('Task updated');
+}
+
+function deleteTaskFromEdit(){
+  const id=editingTaskId;
+  const t=tasks.find(x=>x.id===id); if(!t)return;
+  const idx=tasks.findIndex(x=>x.id===id);
+  const removed=tasks.splice(idx,1)[0];
+  saveAll();
+  closeEdit();
+  renderTasks();updateSub();
+  showToast('Task deleted',()=>{tasks.splice(idx,0,removed);saveAll();renderTasks();updateSub();});
+}
+
+/* ─────────── Notes ─────────── */
 function renderNotes(){
   const list=document.getElementById('notes-list');list.innerHTML='';
-  if(!notes.length){list.innerHTML=`<div class="tempty">No notes yet 📝<br><span style="font-size:13px">Dump info like passwords, ideas, or facts in chat.</span></div>`;return;}
-  // Most recent first
+  if(!notes.length){
+    list.innerHTML=`<div class="tempty">No notes yet 📝<br><span style="font-size:13px">Dump info like passwords, ideas, or facts in chat.</span></div>`;
+    return;
+  }
   const sorted=[...notes].sort((a,b)=>(b.at||'').localeCompare(a.at||''));
   sorted.forEach(n=>{
     const card=document.createElement('div');
     card.className='ncard';
     const when=n.at?new Date(n.at):new Date();
     const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' · '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
-    card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del" onclick="deleteNote('${n.id}')">×</div>`;
+    card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del">×</div>`;
+    card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
+    card.addEventListener('click',()=>openEditNote(n.id));
     list.appendChild(card);
   });
 }
 
-function deleteNote(id){
-  notes=notes.filter(n=>String(n.id)!==String(id));
-  saveAll();
-  renderNotes();updateSub();
+function openEditNote(id){
+  const n=notes.find(x=>String(x.id)===String(id)); if(!n)return;
+  editingNoteId=id;
+  document.getElementById('note-text').value=n.text;
+  document.getElementById('note-modal').classList.add('open');
+}
+function closeNote(){
+  document.getElementById('note-modal').classList.remove('open');
+  editingNoteId=null;
+}
+function saveNoteEdit(){
+  const n=notes.find(x=>String(x.id)===String(editingNoteId)); if(!n)return;
+  const v=document.getElementById('note-text').value.trim();
+  if(!v){closeNote();return;}
+  n.text=v;
+  n.at=new Date().toISOString();
+  saveAll();closeNote();renderNotes();
+  showToast('Note updated');
+}
+function deleteNoteFromEdit(){
+  deleteNote(editingNoteId,true);
+  closeNote();
 }
 
-function showMenu(){
-  const choice=confirm("Clear chat history?\n\n(Tasks and notes will be kept)");
-  if(choice){
-    chatLog=[];
-    saveChat();
-    chatEl.innerHTML='';
-    addMsg("Chat cleared! 🧹 Drop your tasks anytime.");
+function deleteNote(id,silent){
+  const idx=notes.findIndex(n=>String(n.id)===String(id));
+  if(idx<0)return;
+  const removed=notes.splice(idx,1)[0];
+  saveAll();renderNotes();updateSub();
+  if(!silent) showToast('Note deleted',()=>{notes.splice(idx,0,removed);saveAll();renderNotes();updateSub();});
+  else showToast('Note deleted',()=>{notes.splice(idx,0,removed);saveAll();renderNotes();updateSub();});
+}
+
+/* ─────────── Custom date picker ─────────── */
+function openDatePicker(currentVal,cb){
+  datePickerCallback=cb;
+  document.getElementById('custom-date').value=currentVal||isoToday();
+  document.getElementById('date-modal').classList.add('open');
+}
+function closeDatePicker(){
+  document.getElementById('date-modal').classList.remove('open');
+  if(datePickerCallback){datePickerCallback('');datePickerCallback=null;}
+}
+function confirmDatePicker(){
+  const v=document.getElementById('custom-date').value;
+  document.getElementById('date-modal').classList.remove('open');
+  if(datePickerCallback){datePickerCallback(v);datePickerCallback=null;}
+}
+
+/* ─────────── Search ─────────── */
+function openSearch(){
+  closeMenu();
+  document.getElementById('app').classList.add('search-open');
+  document.getElementById('search-bar').classList.add('open');
+  ['tab-chat','tab-tasks','tab-notes'].forEach(id=>document.getElementById(id).classList.remove('active'));
+  document.getElementById('tabs').style.display='none';
+  chatEl.style.display='none';
+  document.getElementById('tasks-view').style.display='none';
+  document.getElementById('notes-view').style.display='none';
+  document.getElementById('input-bar').style.display='none';
+  const sv=document.getElementById('search-view');sv.style.display='flex';sv.style.flexDirection='column';
+  setTimeout(()=>document.getElementById('search-input').focus(),50);
+  renderSearch('');
+}
+function closeSearch(){
+  document.getElementById('app').classList.remove('search-open');
+  document.getElementById('search-bar').classList.remove('open');
+  document.getElementById('search-view').style.display='none';
+  document.getElementById('tabs').style.display='flex';
+  document.getElementById('search-input').value='';
+  // restore last tab — default to chat
+  switchTab('chat');
+}
+
+document.getElementById('search-input').addEventListener('input',e=>renderSearch(e.target.value));
+
+function renderSearch(q){
+  const out=document.getElementById('search-results');
+  q=q.trim().toLowerCase();
+  if(!q){
+    out.innerHTML=`<div class="sr-empty">Type to search across tasks and notes…</div>`;
+    return;
+  }
+  const matchT=tasks.filter(t=>t.text.toLowerCase().includes(q));
+  const matchN=notes.filter(n=>n.text.toLowerCase().includes(q));
+  if(!matchT.length&&!matchN.length){
+    out.innerHTML=`<div class="sr-empty">No matches for "${esc(q)}"</div>`;
+    return;
+  }
+  out.innerHTML='';
+  if(matchT.length){
+    const sec=document.createElement('div');sec.className='sr-section';
+    sec.innerHTML=`<div class="sr-h">Tasks · ${matchT.length}</div>`;
+    matchT.forEach(t=>{
+      const c=createTaskCard({...t,text:hl(t.text,q)});
+      // hl returns html; since our createTaskCard escapes the name, build manually
+      c.querySelector('.tname').innerHTML=hl(esc(t.text),q);
+      sec.appendChild(c);
+    });
+    out.appendChild(sec);
+  }
+  if(matchN.length){
+    const sec=document.createElement('div');sec.className='sr-section';
+    sec.innerHTML=`<div class="sr-h">Notes · ${matchN.length}</div>`;
+    matchN.forEach(n=>{
+      const card=document.createElement('div');
+      card.className='ncard';
+      const when=n.at?new Date(n.at):new Date();
+      const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' · '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+      card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${hl(esc(n.text),q)}</div><div class="ncard-time">${wt}</div></div>`;
+      card.onclick=()=>{closeSearch();switchTab('notes');setTimeout(()=>openEditNote(n.id),100);};
+      sec.appendChild(card);
+    });
+    out.appendChild(sec);
   }
 }
-// Boot
-loadAll();
-updateSub();
+
+function hl(text,q){
+  if(!q)return text;
+  const re=new RegExp('('+q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+')','ig');
+  return text.replace(re,'<mark>$1</mark>');
+}
+
+/* ─────────── Menu ─────────── */
+function toggleMenu(e){
+  if(e)e.stopPropagation();
+  document.getElementById('menu-pop').classList.toggle('open');
+}
+function closeMenu(){document.getElementById('menu-pop').classList.remove('open');}
+document.addEventListener('click',e=>{
+  const m=document.getElementById('menu-pop');
+  if(m.classList.contains('open')&&!e.target.closest('#menu-pop')&&!e.target.closest('.hdr-btn')){closeMenu();}
+});
+
+function exportData(){
+  closeMenu();
+  const data={
+    exportedAt:new Date().toISOString(),
+    tasks,notes,
+    version:1
+  };
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=`taskdump-backup-${new Date().toISOString().split('T')[0]}.json`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Backup downloaded');
+}
+
+function confirmClearChat(){
+  closeMenu();
+  showConfirm('Clear chat?','This will clear chat history. Tasks and notes are kept.',()=>{
+    chatLog=[];saveChat();chatEl.innerHTML='';
+    addMsg('Chat cleared! 🧹 Drop your tasks anytime.');
+  });
+}
+
+/* ─────────── Confirm dialog ─────────── */
+function showConfirm(title,msg,cb){
+  document.getElementById('confirm-title').textContent=title;
+  document.getElementById('confirm-msg').textContent=msg;
+  const ok=document.getElementById('confirm-ok');
+  ok.onclick=()=>{closeConfirm();cb();};
+  document.getElementById('confirm-modal').classList.add('open');
+}
+function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');}
+
+/* ─────────── Toast / Undo ─────────── */
+function showToast(msg,undoFn){
+  const t=document.getElementById('toast');
+  document.getElementById('toast-msg').textContent=msg;
+  const u=document.getElementById('toast-undo');
+  if(undoFn){u.style.display='inline';undoState=undoFn;}
+  else{u.style.display='none';undoState=null;}
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>{t.classList.remove('show');undoState=null;},3500);
+}
+function doUndo(){
+  if(undoState){undoState();undoState=null;}
+  document.getElementById('toast').classList.remove('show');
+  clearTimeout(toastTimer);
+}
+
+/* ─────────── Boot ─────────── */
+loadAll();updateSub();
 
 if(chatLog.length>0){
-  // Replay existing chat history
   replayChat();
-  // If last message was a long time ago, show subtle "Welcome back" divider
   const last=chatLog[chatLog.length-1];
   const hoursSince=(Date.now()-(last.ts||0))/3600000;
   if(hoursSince>3){
     setTimeout(()=>{
-      const div=document.createElement('div');
-      div.className='date-div';
+      const div=document.createElement('div');div.className='date-div';
       div.innerHTML=`<span>Welcome back · ${new Date().toLocaleDateString('en',{month:'short',day:'numeric'})}</span>`;
-      chatEl.appendChild(div);
-      chatEl.scrollTop=chatEl.scrollHeight;
+      chatEl.appendChild(div);chatEl.scrollTop=chatEl.scrollHeight;
     },200);
   }
 } else {
-  // First time — show intro
   setTimeout(()=>{addMsg("Hey! 👋");},300);
-  setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas, anything you want to remember.");},1000);
-  setTimeout(()=>{addMsg("I'll figure out which are <b>tasks</b> 📋 vs which are just <b>notes</b> 📝 to keep.");},1900);
+  setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" 📅");},1000);
+  setTimeout(()=>{addMsg("Long-press any task to edit • Tap notes to edit • Search 🔍 in the top bar.");},2000);
 }
 </script>
 </body>
