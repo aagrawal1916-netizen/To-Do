@@ -712,10 +712,105 @@ function classify(s){
   return 'task';
 }
 
+// Map for state header recognition (lowercase keys → canonical state name)
+const STATE_HEADER_MAP = {
+  'mp':'Madhya Pradesh','m.p':'Madhya Pradesh','m.p.':'Madhya Pradesh','madhya pradesh':'Madhya Pradesh',
+  'cg':'Chhattisgarh','c.g':'Chhattisgarh','c.g.':'Chhattisgarh','chhattisgarh':'Chhattisgarh','chattisgarh':'Chhattisgarh',
+  'up':'Uttar Pradesh','u.p':'Uttar Pradesh','uttar pradesh':'Uttar Pradesh',
+  'mh':'Maharashtra','maharashtra':'Maharashtra','maharastra':'Maharashtra','maharstra':'Maharashtra','mahrastra':'Maharashtra',
+  'gj':'Gujarat','gujarat':'Gujarat','gujrat':'Gujarat',
+  'goa':'Goa',
+  'br':'Bihar','bihar':'Bihar',
+  'jh':'Jharkhand','jharkhand':'Jharkhand','jharkand':'Jharkhand',
+  'wb':'West Bengal','west bengal':'West Bengal','bengal':'West Bengal',
+  'od':'Odisha','odisha':'Odisha','orissa':'Odisha',
+  'as':'Assam','assam':'Assam',
+  'mn':'Manipur','manipur':'Manipur',
+  'ml':'Meghalaya','meghalaya':'Meghalaya',
+  'sk':'Sikkim','sikkim':'Sikkim',
+  'tr':'Tripura','tripura':'Tripura',
+  'ne':'Other Indian state','north east':'Other Indian state','northeast':'Other Indian state','north-east':'Other Indian state',
+};
+
+function detectStateHeader(line){
+  const norm=line.toLowerCase().replace(/[^\w\s\.]/g,'').trim();
+  if(!norm) return null;
+  // Header must be short — usually just the state name on its own line
+  const wc=norm.split(/\s+/).length;
+  if(wc>4) return null;
+  if(STATE_HEADER_MAP[norm]) return STATE_HEADER_MAP[norm];
+  return null;
+}
+
 function parseDump(t){
-  return t.split(/[\n,;]+/)
-    .map(s=>s.replace(/^\s*[\d\.\-\*\•]+\s*/,'').replace(/\[.*?\]/g,'').trim())
-    .filter(s=>s.length>2);
+  if(!t) return [];
+  let s=t.replace(/\r\n/g,'\n').trim();
+
+  // Pre-pass: split inline numbered lists like "1. foo 2. bar 3. baz" into separate lines
+  s=s.replace(/(\s|^)(\d+)[\.\)]\s+/g,'\n');
+
+  // Decide chunking strategy: if input has ≥2 newlines AND looks structured, prefer line-by-line (no comma split)
+  const lineCount=s.split('\n').filter(x=>x.trim()).length;
+  const hasStateHeaders=s.split('\n').some(line=>detectStateHeader(line.trim()));
+  const useLineMode = lineCount>=3 && hasStateHeaders;
+
+  let chunks;
+  if(useLineMode){
+    // Only split on newlines — preserve commas inside individual task lines (e.g. "Demo at choithram, SN krishna")
+    chunks=s.split(/\n+/);
+  } else {
+    chunks=s.split(/[\n,;|]+/);
+  }
+
+  const out=[];
+  let currentState=''; // tracks state header context for line-mode
+
+  chunks.forEach(chunk=>{
+    chunk=chunk.trim();
+    if(!chunk) return;
+
+    // Strip leading bullet/number markers
+    chunk=chunk.replace(/^\s*[\-\*\•]\s+/,'').trim();
+
+    // Check if this chunk is a state header — set context, don't add as task
+    if(useLineMode){
+      const header=detectStateHeader(chunk);
+      if(header){
+        currentState=header;
+        return;
+      }
+    }
+
+    const verbPattern=/^(call|email|send|buy|get|pick|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organi[sz]e|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow|remind|ask|tell|share|upload|download|install|setup|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop|go|visit|find|talk|train|practi[sc]e|workout|exercise|run|walk|drive|hire|fire|launch|ship|publish|deploy|test|debug|configure|migrate|backup|need|have|gotta|must|should)\b/i;
+
+    // For line-mode (structured dumps), don't split on "and" within a line — preserve as one task
+    const parts = useLineMode ? [chunk] : chunk.split(/\s+(?:and|then|also|plus)\s+/i);
+
+    if(parts.length>1){
+      let didSplit=false;
+      let buf=parts[0].trim();
+      for(let i=1;i<parts.length;i++){
+        const p=parts[i].trim();
+        if(verbPattern.test(p) && p.length>3){
+          if(buf.length>2) out.push({text:buf, state:currentState});
+          buf=p;
+          didSplit=true;
+        } else {
+          buf+=' and '+p;
+        }
+      }
+      if(didSplit){
+        if(buf.length>2) out.push({text:buf, state:currentState});
+        return;
+      }
+    }
+    if(chunk.length>2) out.push({text:chunk, state:currentState});
+  });
+
+  return out.map(item=>({
+    text: item.text.replace(/\[.*?\]/g,'').replace(/\s+/g,' ').trim(),
+    state: item.state||''
+  })).filter(item=>item.text.length>2);
 }
 
 /* ─────────── Main flow ─────────── */
@@ -741,13 +836,15 @@ function handleReply(value,label){
     const p=parseDump(cleanedLabel);
     if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines 😊");return;}
 
-    const items=p.map(text=>{
+    const items=p.map(item=>{
+      const text=item.text;
+      const state=item.state||'';
       const k=classify(text);
       if(k==='task'){
         const d=extractDate(text);
-        return {kind:k, text:d.text, autoDue:d.due};
+        return {kind:k, text:d.text, autoDue:d.due, state};
       }
-      return {kind:k, text, autoDue:''};
+      return {kind:k, text, autoDue:'', state};
     });
 
     const definiteNotes=items.filter(i=>i.kind==='note').map(i=>i.text);
@@ -756,7 +853,8 @@ function handleReply(value,label){
       due: sh.due || i.autoDue || '',
       category: sh.category || '',
       priority: sh.priority || 'med',
-      recur: sh.recur || ''
+      recur: sh.recur || '',
+      state: i.state || ''
     }));
     const unsure=items.filter(i=>i.kind==='unsure').map(i=>i.text);
 
@@ -913,13 +1011,27 @@ function startTaskFlow(){
   if(pending.length===1){
     step={type:'due',idx:0};
     const auto=pending[0].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[0].due)+'</span>':'';
-    addMsg(`<b>${esc(pending[0].text)}</b><br>When is it due?${auto}`);
+    const stateNote=pending[0].state?'<br><span style="font-size:12px;color:#888">📍 '+esc(pending[0].state)+'</span>':'';
+    addMsg(`<b>${esc(pending[0].text)}</b><br>When is it due?${auto}${stateNote}`);
     setTimeout(()=>addQR(dateOpts()),30);
   } else if(pending.length>1){
     step={type:'bulk_due'};
-    const li=pending.map(t=>`<div style="padding:2px 0;color:#333;font-size:14px">· ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`).join('');
+    // Group by state for nicer display
+    const byState={};
+    pending.forEach(t=>{const k=t.state||'_none';if(!byState[k])byState[k]=[];byState[k].push(t);});
+    let li='';
+    Object.keys(byState).forEach(key=>{
+      if(key!=='_none'){
+        li+=`<div style="margin-top:6px;font-size:12px;color:var(--wgl);font-weight:600">📍 ${esc(key)}</div>`;
+      }
+      byState[key].forEach(t=>{
+        li+=`<div style="padding:2px 0 2px 8px;color:#333;font-size:14px">· ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`;
+      });
+    });
     const allDated=pending.every(t=>t.due);
-    addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b> 👇<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for the rest?'}`);
+    const stateCount=Object.keys(byState).filter(k=>k!=='_none').length;
+    const stateMsg=stateCount>0?` (across ${stateCount} state${stateCount>1?'s':''})`:'';
+    addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b>${stateMsg} 👇<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for all of them?'}`);
     if(allDated){
       step={type:'bulk_cat'};
       setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
@@ -959,6 +1071,7 @@ function finishFlow(){
       <span class="sname">${esc(t.text)}</span>
       <span class="sright">
         ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'⚡':''}${t.priority}</span>`:''}
+        ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781">📍 ${esc(t.state)}</span>`:''}
         ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
         <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
       </span>
