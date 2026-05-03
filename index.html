@@ -366,7 +366,7 @@ function loadAll(){
 }
 
 /* ─────────── State ─────────── */
-let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all';
+let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all', currentTab='chat';
 let editingTaskId=null, editingNoteId=null, datePickerCallback=null, datePickerCurrentValue='';
 let undoState=null, toastTimer=null;
 let pressTimer=null, longPressed=false;
@@ -751,6 +751,8 @@ function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever 😊
 
 /* ─────────── Tabs ─────────── */
 function switchTab(t){
+  if(!['chat','tasks','notes'].includes(t)) t='chat';
+  currentTab=t;
   // Close search panel if it was open, but don't recursively call switchTab
   const app=document.getElementById('app');
   if(app.classList.contains('search-open')){
@@ -1019,8 +1021,7 @@ function closeSearch(){
   document.getElementById('search-view').style.display='none';
   document.getElementById('tabs').style.display='flex';
   document.getElementById('search-input').value='';
-  // restore last tab — default to chat
-  switchTab('chat');
+  switchTab(currentTab);
 }
 
 document.getElementById('search-input').addEventListener('input',e=>renderSearch(e.target.value));
