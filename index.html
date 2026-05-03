@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+<meta name="apple-mobile-web-app-title" content="TaskDump"/>
+<meta name="application-name" content="TaskDump"/>
+<meta name="theme-color" content="#075e54"/>
+<meta name="description" content="Dump your tasks and notes — TaskDump organises them by due date and category."/>
+<link rel="manifest" href="manifest.json"/>
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+<link rel="apple-touch-icon" href="icon-192.png"/>
+<title>TaskDump</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif}
+:root{
+  --wg:#075e54;--wgl:#128c7e;--wteal:#25d366;
+  --wout:#dcf8c6;--win:#fff;
+  --wbg:#ece5dd;--wmuted:#667781;--wtick:#53bdeb;
+  --wwork:#1877f2;--wpersonal:#8b5cf6;
+  --whigh:#ef4444;--wmed:#f59e0b;--wlow:#22c55e;
+}
+.app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:#fff}
+
+/* header */
+.hdr{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 2px;background:var(--wg);min-height:54px;flex-shrink:0}
+.hdr-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hdr-av{width:38px;height:38px;border-radius:50%;background:var(--wteal);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;letter-spacing:-.5px}
+.hdr-info{flex:1;min-width:0;cursor:pointer}
+.hdr-name{font-size:16px;font-weight:600;color:#fff;line-height:1.2}
+.hdr-sub{font-size:12px;color:rgba(255,255,255,.75);margin-top:1px}
+.hdr-icons{display:flex;flex-shrink:0}
+.hdr-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+
+/* tabs */
+.tabs{display:flex;background:var(--wg);flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
+.tab{flex:1;text-align:center;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);padding:10px 0;cursor:pointer;border-bottom:3px solid transparent;letter-spacing:.05em}
+.tab.active{color:#fff;border-bottom-color:#fff}
+
+/* chat */
+.chat-bg{
+  flex:1;overflow-y:auto;
+  background-color:var(--wbg);
+  background-image:url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23a0998a' fill-opacity='0.09'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z'/%3E%3C/g%3E%3C/svg%3E");
+  padding:6px 0 4px;
+  -webkit-overflow-scrolling:touch;
+}
+.chat-bg::-webkit-scrollbar{display:none}
+
+/* date pill */
+.date-div{display:flex;justify-content:center;margin:8px 0 4px}
+.date-div span{background:rgba(225,245,254,.9);color:#667781;font-size:12px;padding:4px 12px;border-radius:8px;box-shadow:0 1px 1px rgba(0,0,0,.1)}
+
+/* message rows */
+.mrow{display:flex;padding:2px 8px;align-items:flex-end}
+.mrow.out{justify-content:flex-end}
+.mrow.in{justify-content:flex-start}
+
+/* bubbles */
+.bbl{max-width:82%;min-width:72px;padding:7px 9px 4px;border-radius:8px;position:relative;box-shadow:0 1px 1px rgba(0,0,0,.12);word-break:break-word}
+.mrow.out .bbl{background:var(--wout);border-top-right-radius:2px}
+.mrow.in .bbl{background:var(--win);border-top-left-radius:2px}
+.mrow.out .bbl::after{content:'';position:absolute;top:0;right:-7px;border-left:8px solid var(--wout);border-bottom:8px solid transparent}
+.mrow.in .bbl::before{content:'';position:absolute;top:0;left:-7px;border-right:8px solid var(--win);border-bottom:8px solid transparent}
+.bbl-txt{font-size:15px;color:#111;line-height:1.45;padding-right:46px}
+.bbl-txt b{font-weight:600}
+.bbl-meta{float:right;margin-top:-13px;margin-left:4px;display:flex;align-items:center;gap:3px;font-size:11px;color:var(--wmuted);white-space:nowrap}
+.ticks svg{width:16px;height:10px;display:block}
+
+/* quick replies — appear inside bubble */
+.qrw{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;clear:both}
+.qr{display:inline-flex;align-items:center;padding:6px 13px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid;background:#fff;white-space:nowrap;transition:filter .1s}
+.qr:active{filter:brightness(.9)}
+.qr.g{border-color:#25d366;color:#128c7e}
+.qr.b{border-color:var(--wwork);color:var(--wwork)}
+.qr.p{border-color:var(--wpersonal);color:var(--wpersonal)}
+.qr.gr{border-color:#ccc;color:#8696a0}
+
+/* summary card */
+.scard{margin-top:7px;border-radius:6px;overflow:hidden;border:1px solid #e0e0e0;clear:both}
+.srow{display:flex;align-items:center;justify-content:space-between;padding:6px 9px;font-size:13px;background:#f9f9f9;border-bottom:1px solid #efefef}
+.srow:last-child{border-bottom:none}
+.sname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:56%;color:#111}
+.sright{display:flex;gap:5px;align-items:center;flex-shrink:0}
+.cpill{font-size:11px;padding:2px 7px;border-radius:20px;font-weight:500}
+.cpill.work{background:#e8f0fe;color:var(--wwork)}
+.cpill.personal{background:#f3e8ff;color:var(--wpersonal)}
+.dpill{font-size:11px;color:var(--wmuted)}
+
+/* tasks view */
+.tv{flex:1;overflow-y:auto;background:#f0f2f5;-webkit-overflow-scrolling:touch}
+.tv::-webkit-scrollbar{display:none}
+.frow{display:flex;gap:6px;padding:10px 12px 8px;overflow-x:auto;background:#fff;border-bottom:1px solid #e9edef;flex-shrink:0}
+.frow::-webkit-scrollbar{display:none}
+.flt{font-size:13px;padding:5px 14px;border-radius:20px;border:1.5px solid #d0d0d0;color:var(--wmuted);cursor:pointer;white-space:nowrap;background:#fff;font-weight:500;transition:all .15s}
+.flt.fa{background:var(--wteal);color:#fff;border-color:var(--wteal)}
+.flt.fw{background:#e8f0fe;color:var(--wwork);border-color:var(--wwork)}
+.flt.fp{background:#f3e8ff;color:var(--wpersonal);border-color:var(--wpersonal)}
+.flt.fd{background:#dcf8c6;color:var(--wgl);border-color:var(--wgl)}
+.tbody{padding:8px 10px}
+.tgrp{margin-bottom:14px}
+.tglbl{font-size:11.5px;font-weight:600;color:var(--wmuted);margin-bottom:6px;padding:0 2px;text-transform:uppercase;letter-spacing:.04em}
+.tc{display:flex;align-items:center;gap:10px;background:#fff;border-radius:8px;padding:10px 12px;margin-bottom:4px;box-shadow:0 1px 2px rgba(0,0,0,.07);cursor:pointer;transition:background .1s}
+.tc:active{background:#f5f5f5}
+.tc.done{opacity:.45}
+.tc.done .tname{text-decoration:line-through;color:var(--wmuted)}
+.tchk{width:20px;height:20px;border-radius:50%;border:2px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.tc.done .tchk{background:var(--wteal);border-color:var(--wteal)}
+.cksvg{display:none}.tc.done .cksvg{display:block}
+.tbody2{flex:1;min-width:0}
+.tname{font-size:15px;color:#111;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.3}
+.tmeta{display:flex;gap:6px;align-items:center;margin-top:3px}
+.tcat{font-size:12px;font-weight:500}
+.tcat.work{color:var(--wwork)}.tcat.personal{color:var(--wpersonal)}
+.tdate{font-size:12px;color:var(--wmuted)}
+.tdate.overdue{color:var(--whigh)}.tdate.today{color:var(--wmed)}
+.pline{width:3px;border-radius:2px;align-self:stretch;flex-shrink:0}
+.pline.high{background:var(--whigh)}.pline.med{background:var(--wmed)}.pline.low{background:var(--wlow)}
+.tempty{padding:48px 20px;text-align:center;color:var(--wmuted);font-size:14px;line-height:1.6}
+
+/* note cards */
+.ncard{display:flex;align-items:flex-start;gap:8px;background:#fffacc;border-radius:8px;padding:12px 14px;margin-bottom:8px;box-shadow:0 1px 2px rgba(0,0,0,.07);border-left:4px solid #f4d03f}
+.ncard-body{flex:1;min-width:0}
+.ncard-text{font-size:14.5px;color:#111;line-height:1.45;word-break:break-word;white-space:pre-wrap}
+.ncard-time{font-size:11px;color:#888;margin-top:6px;font-weight:500}
+.ncard-del{font-size:22px;color:#999;cursor:pointer;padding:0 4px;line-height:1;flex-shrink:0;font-weight:300}
+.ncard-del:active{color:#ef4444}
+
+/* input */
+.ibar{display:flex;align-items:flex-end;gap:7px;padding:6px 8px 10px;background:var(--wbg);flex-shrink:0}
+.iwrap{flex:1;background:#fff;border-radius:24px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.iemoji{font-size:22px;cursor:pointer;flex-shrink:0;line-height:1;color:#8696a0}
+.iwrap textarea{flex:1;border:none;outline:none;resize:none;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif;font-size:15px;color:#111;line-height:1.4;max-height:100px;overflow-y:auto;background:transparent}
+.iwrap textarea::placeholder{color:#8696a0}
+.iwrap textarea::-webkit-scrollbar{display:none}
+.isend{width:46px;height:46px;border-radius:50%;background:var(--wteal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.isend:active{opacity:.85;transform:scale(.96)}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="hdr">
+    <div class="hdr-back"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M9 1L1 8.5 9 16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="hdr-av">TD</div>
+    <div class="hdr-info">
+      <div class="hdr-name">TaskDump</div>
+      <div class="hdr-sub" id="hdr-sub">tap to manage tasks</div>
+    </div>
+    <div class="hdr-icons">
+      <div class="hdr-btn" onclick="switchTab('tasks')">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>
+      </div>
+      <div class="hdr-btn">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><circle cx="12" cy="5" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="12" cy="19" r="1.8"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tab-chat" onclick="switchTab('chat')">CHAT</div>
+    <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">TASKS</div>
+    <div class="tab" id="tab-notes" onclick="switchTab('notes')">NOTES</div>
+  </div>
+
+  <div class="chat-bg" id="chat-view"></div>
+
+  <div class="tv" id="tasks-view" style="display:none">
+    <div class="frow">
+      <div class="flt fa" onclick="setFilter('all',this)">All</div>
+      <div class="flt" onclick="setFilter('work',this)">Work</div>
+      <div class="flt" onclick="setFilter('personal',this)">Personal</div>
+      <div class="flt" onclick="setFilter('done',this)">Done</div>
+    </div>
+    <div class="tbody" id="task-list"></div>
+  </div>
+
+  <div class="tv" id="notes-view" style="display:none">
+    <div class="tbody" id="notes-list" style="padding-top:14px"></div>
+  </div>
+
+  <div class="ibar" id="input-bar">
+    <div class="iwrap">
+      <span class="iemoji">☺</span>
+      <textarea id="msg-input" rows="1" placeholder="Message"></textarea>
+    </div>
+    <button class="isend" onclick="sendMsg()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </button>
+  </div>
+</div>
+
+<script>
+// Service worker registration for offline support
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(()=>{});
+  });
+}
+
+// Storage keys
+const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1';
+function saveAll(){
+  try{
+    localStorage.setItem(LS_TASKS, JSON.stringify(tasks));
+    localStorage.setItem(LS_NOTES, JSON.stringify(notes));
+  }catch(e){}
+}
+function loadAll(){
+  try{
+    const t=localStorage.getItem(LS_TASKS); if(t) tasks=JSON.parse(t)||[];
+    const n=localStorage.getItem(LS_NOTES); if(n) notes=JSON.parse(n)||[];
+  }catch(e){}
+}
+
+let tasks=[],notes=[],pending=[],pendingNotes=[],step=null,activeFilter='all';
+const chatEl=document.getElementById('chat-view');
+const inp=document.getElementById('msg-input');
+
+inp.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
+inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
+
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
+const ticks=(r)=>`<svg viewBox="0 0 16 11" fill="none"><path d="M1 5.5l3.5 3.5L11 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 5.5l3.5 3.5L15 2" stroke="${r?'#53bdeb':'#8696a0'}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+
+function addMsg(html,side){
+  const out=side==='user';
+  const row=document.createElement('div');
+  row.className='mrow '+(out?'out':'in');
+  const meta=`<div class="bbl-meta">${now()}${out?`<span class="ticks">${ticks(true)}</span>`:''}</div>`;
+  row.innerHTML=`<div class="bbl"><div class="bbl-txt">${out?esc(html):html}</div>${meta}</div>`;
+  chatEl.appendChild(row);
+  chatEl.scrollTop=chatEl.scrollHeight;
+  return row;
+}
+
+function addQR(opts){
+  const rows=chatEl.querySelectorAll('.mrow.in');
+  const last=rows[rows.length-1];
+  if(!last)return;
+  const bbl=last.querySelector('.bbl');
+  const w=document.createElement('div');
+  w.className='qrw';w.id='qr-active';
+  opts.forEach(o=>{
+    const b=document.createElement('div');
+    b.className='qr '+o.c;b.textContent=o.l;
+    b.onclick=()=>{rmQR();handleReply(o.v,o.l);};
+    w.appendChild(b);
+  });
+  bbl.appendChild(w);
+  chatEl.scrollTop=chatEl.scrollHeight;
+}
+const rmQR=()=>{const q=document.getElementById('qr-active');if(q)q.remove();};
+
+/* date helpers */
+const isoToday=()=>new Date().toISOString().split('T')[0];
+const isoOff=(n)=>{const d=new Date();d.setDate(d.getDate()+n);return d.toISOString().split('T')[0];};
+const isoWeekday=(n)=>{const d=new Date();const diff=(n-d.getDay()+7)%7||7;d.setDate(d.getDate()+diff);return d.toISOString().split('T')[0];};
+function fmtDate(iso){
+  if(!iso)return'No date';
+  const d=new Date(iso+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);
+  const diff=Math.round((d-t)/86400000);
+  if(diff===0)return'Today';if(diff===1)return'Tomorrow';if(diff===-1)return'Yesterday';
+  if(diff<0)return Math.abs(diff)+'d overdue';
+  if(diff<7)return d.toLocaleDateString('en',{weekday:'short'});
+  return d.toLocaleDateString('en',{month:'short',day:'numeric'});
+}
+function dStatus(iso){
+  if(!iso)return'';
+  const d=new Date(iso+'T00:00:00'),t=new Date();t.setHours(0,0,0,0);
+  return Math.round((d-t)/86400000)<0?'overdue':Math.round((d-t)/86400000)===0?'today':'';
+}
+function resolveDue(v){
+  if(v==='today')return isoToday();
+  if(v==='tomorrow')return isoOff(1);
+  if(v==='thisweek')return isoWeekday(5);
+  if(v==='nextweek')return isoOff(7);
+  return'';
+}
+const dateOpts=()=>[
+  {l:'Today',v:'today',c:'g'},
+  {l:'Tomorrow',v:'tomorrow',c:'g'},
+  {l:'This week',v:'thisweek',c:'gr'},
+  {l:'Next week',v:'nextweek',c:'gr'},
+  {l:'Skip ›',v:'skip',c:'gr'},
+];
+
+function parseDump(t){
+  return t.split(/[\n,;]+/)
+    .map(s=>s.replace(/^\s*[\d\.\-\*\•]+\s*/,'').replace(/\[.*?\]/g,'').trim())
+    .filter(s=>s.length>2);
+}
+
+// Classify a string as 'task' | 'note' | 'unsure'
+function classify(s){
+  const lower=s.toLowerCase().trim();
+
+  // Strong task signals: action verbs at start
+  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|pick up|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|followup|remind|ask|tell|share|upload|download|install|setup|set up|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop|drop off|dropoff)\b/i;
+
+  // Imperative + task hints
+  const taskHints=/(need to|have to|gotta|must|should|to-?do|reminder|deadline|by\s(monday|tuesday|wednesday|thursday|friday|saturday|sunday|today|tomorrow|next|this))/i;
+
+  // Note signals: factual statements, info-keeping
+  const noteHints=/^(my |the |password|wifi|address|phone|email is|account|username|note:|fyi|info:|remember:|btw|note that|just so)/i;
+  const noteFacts=/\b(is|are|was|were)\s/i; // "the meeting is monday" style facts
+
+  // Numbers/codes/passwords/addresses
+  const looksLikeData=/^(\+?\d[\d\-\s]{5,}|[a-zA-Z0-9_]{8,}@|https?:\/\/|wifi|pwd|pin|code|otp)/i;
+
+  if(taskVerbs.test(s)||taskHints.test(s)) return 'task';
+  if(noteHints.test(s)||looksLikeData.test(s)) return 'note';
+  // Short fragment, no verb → likely a task name (e.g. "groceries", "dentist appointment")
+  if(s.split(/\s+/).length<=4) return 'task';
+  // Has a "is/are/was" without action verb → note
+  if(noteFacts.test(s)&&!taskVerbs.test(s)) return 'note';
+  return 'unsure';
+}
+
+function sendMsg(){
+  const t=inp.value.trim();
+  if(!t&&step&&(step.type==='due'||step.type==='bulk_due')){rmQR();handleReply('skip','Skip');return;}
+  if(!t)return;
+  inp.value='';inp.style.height='auto';
+  rmQR();handleReply(t,t);
+}
+
+function handleReply(value,label){
+  if(step===null){
+    addMsg(label,'user');
+    const p=parseDump(label);
+    if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines 😊");return;}
+
+    // Triage: tasks vs notes vs unsure
+    const items=p.map(text=>({text,kind:classify(text)}));
+    const definiteNotes=items.filter(i=>i.kind==='note').map(i=>i.text);
+    const definiteTasks=items.filter(i=>i.kind==='task').map(i=>i.text);
+    const unsure=items.filter(i=>i.kind==='unsure').map(i=>i.text);
+
+    // Save notes immediately
+    definiteNotes.forEach(n=>notes.push({text:n,id:Date.now()+Math.random(),at:new Date().toISOString()}));
+    if(definiteNotes.length) saveAll();
+
+    // If everything is notes
+    if(definiteTasks.length===0&&unsure.length===0&&definiteNotes.length>0){
+      const list=definiteNotes.map(n=>`<div style="padding:2px 0;color:#333;font-size:14px">📝 ${esc(n)}</div>`).join('');
+      addMsg(`Saved as <b>note${definiteNotes.length>1?'s':''}</b>:<div style="margin:6px 0 4px">${list}</div>`);
+      updateSub();
+      return;
+    }
+
+    // If unsure items exist, ask user
+    if(unsure.length>0){
+      pendingNotes=definiteNotes;
+      pending=definiteTasks.map(t=>({text:t,due:'',category:'',priority:'med'}));
+      step={type:'classify',unsure,idx:0};
+      askClassify();
+      return;
+    }
+
+    // All tasks (no unsure)
+    pending=definiteTasks.map(t=>({text:t,due:'',category:'',priority:'med'}));
+    if(definiteNotes.length>0){
+      const nl=definiteNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px">📝 ${esc(n)}</div>`).join('');
+      addMsg(`Saved <b>${definiteNotes.length} note${definiteNotes.length>1?'s':''}</b>:<div style="margin:5px 0 2px">${nl}</div>`);
+    }
+    startTaskFlow();
+
+  } else if(step.type==='classify'){
+    addMsg(label,'user');
+    const cur=step.unsure[step.idx];
+    if(value==='task'){
+      pending.push({text:cur,due:'',category:'',priority:'med'});
+    } else if(value==='note'){
+      notes.push({text:cur,id:Date.now()+Math.random(),at:new Date().toISOString()});
+      saveAll();
+    } else if(value==='skip'){
+      // skip — drop
+    }
+    step.idx++;
+    if(step.idx<step.unsure.length){
+      askClassify();
+    } else {
+      updateSub();
+      if(pending.length===0){
+        const noteCount=notes.length-(pending.length); // approximation
+        addMsg(`✅ Done! Notes saved.`);
+        step=null;
+        return;
+      }
+      startTaskFlow();
+    }
+
+  } else if(step.type==='bulk_due'){
+    addMsg(label,'user');
+    if(value==='individual'){
+      step={type:'due',idx:0};
+      addMsg(`OK! <b>${esc(pending[0].text)}</b> — when is it due?`);
+      setTimeout(()=>addQR(dateOpts()),30);
+    } else {
+      pending.forEach(t=>t.due=resolveDue(value));
+      step={type:'bulk_cat'};
+      addMsg('Are these <b>Work</b> or <b>Personal</b>?');
+      setTimeout(()=>addQR([{l:'💼 Work — all',v:'work',c:'b'},{l:'🏠 Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'}]),30);
+    }
+
+  } else if(step.type==='bulk_cat'){
+    addMsg(label,'user');
+    if(value==='individual'){
+      step={type:'category',idx:0};
+      addMsg(`Is <b>${esc(pending[0].text)}</b> work or personal?`);
+      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'}]),30);
+    } else {
+      pending.forEach(t=>t.category=value);
+      finishFlow();
+    }
+
+  } else if(step.type==='due'){
+    addMsg(label,'user');
+    pending[step.idx].due=resolveDue(value);
+    const i=step.idx;
+    step={type:'category',idx:i};
+    setTimeout(()=>{
+      addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
+      setTimeout(()=>addQR([{l:'💼 Work',v:'work',c:'b'},{l:'🏠 Personal',v:'personal',c:'p'}]),30);
+    },220);
+
+  } else if(step.type==='category'){
+    addMsg(label,'user');
+    pending[step.idx].category=value;
+    const next=step.idx+1;
+    if(next<pending.length){
+      step={type:'due',idx:next};
+      setTimeout(()=>{
+        addMsg(`<b>${esc(pending[next].text)}</b> — when is it due?`);
+        setTimeout(()=>addQR(dateOpts()),30);
+      },220);
+    } else {
+      finishFlow();
+    }
+  }
+}
+
+function askClassify(){
+  const cur=step.unsure[step.idx];
+  const remaining=step.unsure.length-step.idx;
+  addMsg(`Is <b>"${esc(cur)}"</b> a task or just info to remember?`);
+  setTimeout(()=>addQR([
+    {l:'✓ Task',v:'task',c:'g'},
+    {l:'📝 Just a note',v:'note',c:'gr'},
+    {l:'Skip',v:'skip',c:'gr'},
+  ]),30);
+}
+
+function startTaskFlow(){
+  if(pending.length===1){
+    step={type:'due',idx:0};
+    addMsg(`<b>${esc(pending[0].text)}</b><br>When is it due?`);
+    setTimeout(()=>addQR(dateOpts()),30);
+  } else if(pending.length>1){
+    step={type:'bulk_due'};
+    const li=pending.map(t=>`<div style="padding:2px 0;color:#333;font-size:14px">· ${esc(t.text)}</div>`).join('');
+    addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b> 👇<div style="margin:7px 0 3px">${li}</div>Due date for <b>all of them</b>?`);
+    setTimeout(()=>addQR([...dateOpts(),{l:'Set one by one',v:'individual',c:'gr'}]),30);
+  }
+}
+
+function finishFlow(){
+  pending.forEach(t=>tasks.push({...t,done:false,id:Date.now()+Math.random()}));
+  saveAll();
+  updateSub();
+  const rows=pending.map(t=>`<div class="srow"><span class="sname">${esc(t.text)}</span><span class="sright"><span class="cpill ${t.category}">${t.category||'—'}</span><span class="dpill">${t.due?fmtDate(t.due):'No date'}</span></span></div>`).join('');
+  addMsg(`✅ Added <b>${pending.length}</b> task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
+  pending=[];step=null;
+}
+
+function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever 😊");}
+
+/* tabs */
+function switchTab(t){
+  document.getElementById('tab-chat').classList.toggle('active',t==='chat');
+  document.getElementById('tab-tasks').classList.toggle('active',t==='tasks');
+  document.getElementById('tab-notes').classList.toggle('active',t==='notes');
+  chatEl.style.display=t==='chat'?'block':'none';
+  document.getElementById('tasks-view').style.display=t==='tasks'?'flex':'none';
+  document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
+  document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
+  if(t==='tasks'){
+    document.getElementById('tasks-view').style.flexDirection='column';
+    renderTasks();
+  } else if(t==='notes'){
+    document.getElementById('notes-view').style.flexDirection='column';
+    renderNotes();
+  }
+}
+
+/* filter */
+const fmap={all:'fa',work:'fw',personal:'fp',done:'fd'};
+function setFilter(f,el){
+  activeFilter=f;
+  document.querySelectorAll('.flt').forEach(x=>{x.className='flt';});
+  el.classList.add(fmap[f]);
+  renderTasks();
+}
+
+function updateSub(){
+  const n=tasks.filter(t=>!t.done).length;
+  const nn=notes.length;
+  let txt=n+' task'+(n!==1?'s':'');
+  if(nn>0) txt+=' · '+nn+' note'+(nn!==1?'s':'');
+  document.getElementById('hdr-sub').textContent=txt;
+}
+
+function renderTasks(){
+  const list=document.getElementById('task-list');list.innerHTML='';
+  let filtered=activeFilter==='done'?tasks.filter(t=>t.done):activeFilter==='all'?tasks.filter(t=>!t.done):tasks.filter(t=>!t.done&&t.category===activeFilter);
+  if(!filtered.length){list.innerHTML=`<div class="tempty">${activeFilter==='done'?'Nothing completed yet ✅':'No tasks here.\nDump some tasks in chat!'}</div>`;return;}
+  const groups={};
+  filtered.forEach(t=>{const k=t.due||'_nd';if(!groups[k])groups[k]=[];groups[k].push(t);});
+  Object.keys(groups).sort((a,b)=>a==='_nd'?1:b==='_nd'?-1:a.localeCompare(b)).forEach(key=>{
+    const g=document.createElement('div');g.className='tgrp';
+    const ds=dStatus(key);
+    const lc=ds==='overdue'?'var(--whigh)':ds==='today'?'var(--wmed)':'var(--wmuted)';
+    g.innerHTML=`<div class="tglbl" style="color:${lc}">${key==='_nd'?'No date':fmtDate(key)}</div>`;
+    groups[key].forEach(t=>{
+      const c=document.createElement('div');c.className='tc'+(t.done?' done':'');
+      const ds2=dStatus(t.due);
+      c.innerHTML=`<div class="pline ${t.priority}"></div><div class="tchk"><svg class="cksvg" width="11" height="8" viewBox="0 0 11 8" fill="none"><path d="M1 4l3 3 6-6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="tbody2"><div class="tname">${esc(t.text)}</div><div class="tmeta"><span class="tcat ${t.category}">${t.category==='work'?'💼 Work':'🏠 Personal'}</span>${t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:''}</div></div>`;
+      c.onclick=()=>{t.done=!t.done;saveAll();renderTasks();updateSub();};
+      g.appendChild(c);
+    });
+    list.appendChild(g);
+  });
+}
+
+function renderNotes(){
+  const list=document.getElementById('notes-list');list.innerHTML='';
+  if(!notes.length){list.innerHTML=`<div class="tempty">No notes yet 📝<br><span style="font-size:13px">Dump info like passwords, ideas, or facts in chat.</span></div>`;return;}
+  // Most recent first
+  const sorted=[...notes].sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+  sorted.forEach(n=>{
+    const card=document.createElement('div');
+    card.className='ncard';
+    const when=n.at?new Date(n.at):new Date();
+    const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' · '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+    card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del" onclick="deleteNote('${n.id}')">×</div>`;
+    list.appendChild(card);
+  });
+}
+
+function deleteNote(id){
+  notes=notes.filter(n=>String(n.id)!==String(id));
+  saveAll();
+  renderNotes();updateSub();
+}
+// Boot
+loadAll();
+updateSub();
+if(tasks.length||notes.length){
+  setTimeout(()=>{addMsg(`Welcome back! 👋 You have <b>${tasks.filter(t=>!t.done).length}</b> task${tasks.filter(t=>!t.done).length!==1?'s':''} pending${notes.length?` and <b>${notes.length}</b> note${notes.length!==1?'s':''}`:''}.`);},300);
+} else {
+  setTimeout(()=>{addMsg("Hey! 👋");},300);
+  setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas, anything you want to remember.");},1000);
+  setTimeout(()=>{addMsg("I'll figure out which are <b>tasks</b> 📋 vs which are just <b>notes</b> 📝 to keep.");},1900);
+}
+</script>
+</body>
+</html>
