@@ -554,9 +554,39 @@ let pressTimer=null, longPressed=false;
 const chatEl=document.getElementById('chat-view');
 const inp=document.getElementById('msg-input');
 
-/* Service Worker */
+/* Service Worker - offline-first with update detection */
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
+ window.addEventListener('load',()=>{
+  navigator.serviceWorker.register('sw.js').then(reg=>{
+   // Check for updates every time the app gains focus
+   reg.update();
+   document.addEventListener('visibilitychange',()=>{if(!document.hidden)reg.update();});
+   // When a new version is found
+   reg.addEventListener('updatefound',()=>{
+    const sw=reg.installing;
+    if(!sw) return;
+    sw.addEventListener('statechange',()=>{
+     if(sw.state==='installed' && navigator.serviceWorker.controller){
+      // New version ready - offer reload via toast
+      if(typeof showToast==='function'){
+       showToast('Update ready - tap to apply',()=>{
+        sw.postMessage('SKIP_WAITING');
+        window.location.reload();
+       });
+       // Also extend the toast time by re-running
+      }
+     }
+    });
+   });
+  }).catch(()=>{});
+  // Reload when SW takes control after skipWaiting
+  let reloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+   if(reloading) return;
+   reloading=true;
+   window.location.reload();
+  });
+ });
 }
 
 /* Utils */
