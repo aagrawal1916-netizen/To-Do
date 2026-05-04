@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="TaskDump"/>
 <meta name="application-name" content="TaskDump"/>
 <meta name="theme-color" content="#075e54"/>
-<meta name="description" content="Dump your tasks and notes — TaskDump organises them by due date and category."/>
+<meta name="description" content="Dump your tasks and notes - TaskDump organises them by due date and category."/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
@@ -27,7 +27,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 }
 .app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:#fff;position:relative}
 
-/* ── Header ── */
+/* Header */
 .hdr{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 2px;background:var(--wg);min-height:54px;flex-shrink:0}
 .hdr-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
 .hdr-av{width:38px;height:38px;border-radius:50%;background:var(--wteal);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;letter-spacing:-.5px}
@@ -232,7 +232,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 /* shortcuts hint */
 .qr-hint{font-size:11px;color:var(--wmuted);margin-top:4px;font-style:italic}
 
-/* ── Calendar ── */
+/* Calendar */
 .cal-toolbar{display:flex;gap:6px;padding:10px 12px;background:#fff;border-bottom:1px solid #e9edef;flex-shrink:0}
 .cal-mode{flex:1;text-align:center;font-size:13px;font-weight:600;color:var(--wmuted);padding:7px 0;border-radius:8px;cursor:pointer;background:#f0f2f5;letter-spacing:.04em}
 .cal-mode.active{background:var(--wteal);color:#fff}
@@ -308,7 +308,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 <div class="app" id="app">
 
  <div class="hdr" id="hdr">
- <div class="hdr-back"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M9 1L1 8.5 9 16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+ <div class="hdr-back" onclick="goBack()"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M9 1L1 8.5 9 16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
  <div class="hdr-av">TD</div>
  <div class="hdr-info">
  <div class="hdr-name">TaskDump</div>
@@ -323,12 +323,12 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
  <div class="menu-pop" id="menu-pop">
  <div class="menu-item" onclick="enableNotifications()"> <span id="notif-label">Enable reminders</span></div>
- <div class="menu-item" onclick="closeMenu();openSearch()"> Search</div>
+ <div class="menu-item" onclick="closeMenu();openSearch()">Search</div>
  <div class="menu-divider"></div>
- <div class="menu-item" onclick="exportData()"> Export backup</div>
- <div class="menu-item" onclick="importData()"> Import backup</div>
+ <div class="menu-item" onclick="exportData()">Export backup</div>
+ <div class="menu-item" onclick="importData()">Import backup</div>
  <div class="menu-divider"></div>
- <div class="menu-item danger" onclick="confirmClearChat()"> Clear chat</div>
+ <div class="menu-item danger" onclick="confirmClearChat()">Clear chat</div>
  </div>
  </div>
  </div>
@@ -337,7 +337,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="search-back" onclick="closeSearch()">
  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
  </div>
- <input type="text" class="search-input" id="search-input" placeholder="Search tasks and notes…"/>
+ <input type="text" class="search-input" id="search-input" placeholder="Search tasks and notes..."/>
  </div>
 
  <div class="tabs" id="tabs">
@@ -368,9 +368,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="cal-mode active" id="cal-mode-week" onclick="setCalMode('week')">Week</div>
  </div>
  <div class="cal-nav">
- <div class="cal-nav-btn" onclick="calNav(-1)">‹</div>
+ <div class="cal-nav-btn" onclick="calNav(-1)"><</div>
  <div class="cal-title" id="cal-title" onclick="calToday()"></div>
- <div class="cal-nav-btn" onclick="calNav(1)">›</div>
+ <div class="cal-nav-btn" onclick="calNav(1)">></div>
  </div>
  <div id="cal-body"></div>
  </div>
@@ -422,7 +422,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
  <label>State / region</label>
  <select id="edit-state" class="state-select">
- <option value="">— None —</option>
+ <option value="">- None -</option>
  </select>
  <div class="modal-btns">
  <button class="modal-btn danger" onclick="deleteTaskFromEdit()">Delete</button>
@@ -436,7 +436,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="modal-bg" id="note-modal">
  <div class="modal">
  <h3>Edit note</h3>
- <textarea id="note-text" rows="5" placeholder="Your note…"></textarea>
+ <textarea id="note-text" rows="5" placeholder="Your note..."></textarea>
  <div class="modal-btns">
  <button class="modal-btn danger" onclick="deleteNoteFromEdit()">Delete</button>
  <button class="modal-btn secondary" onclick="closeNote()">Cancel</button>
@@ -504,7 +504,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
  <label>State / region</label>
  <select id="quickadd-state" class="state-select">
- <option value="">— None —</option>
+ <option value="">- None -</option>
  </select>
  <div class="modal-btns">
  <button class="modal-btn secondary" onclick="closeQuickAdd()">Cancel</button>
@@ -524,7 +524,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 </div>
 
 <script>
-/* ─────────── Storage ─────────── */
+/* Storage */
 const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1', LS_CHAT='td_chat_v1';
 function saveAll(){
  try{
@@ -543,7 +543,7 @@ function loadAll(){
  }catch(e){}
 }
 
-/* ─────────── State ─────────── */
+/* State */
 let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all', currentTab='chat';
 let editingTaskId=null, editingNoteId=null, datePickerCallback=null, datePickerCurrentValue='';
 let undoState=null, toastTimer=null;
@@ -552,12 +552,12 @@ let pressTimer=null, longPressed=false;
 const chatEl=document.getElementById('chat-view');
 const inp=document.getElementById('msg-input');
 
-/* ─────────── Service Worker ─────────── */
+/* Service Worker */
 if('serviceWorker' in navigator){
  window.addEventListener('load',()=>{navigator.serviceWorker.register('sw.js').catch(()=>{});});
 }
 
-/* ─────────── Utils ─────────── */
+/* Utils */
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const attr=s=>esc(s).replace(/"/g,'&quot;');
 const now=()=>{const d=new Date();return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');};
@@ -567,7 +567,7 @@ const uid=()=>Date.now()+'_'+Math.random().toString(36).slice(2,8);
 inp.addEventListener('input',function(){this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';});
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
-/* ─────────── Chat rendering ─────────── */
+/* Chat rendering */
 function addMsg(html,side,opts){
  opts=opts||{};
  const out=side==='user';
@@ -604,7 +604,7 @@ function addQR(opts){
 }
 const rmQR=()=>{const q=document.getElementById('qr-active');if(q)q.remove();};
 
-/* ─────────── Date helpers ─────────── */
+/* Date helpers */
 const isoToday=()=>new Date().toISOString().split('T')[0];
 
 /* States / regions */
@@ -670,11 +670,11 @@ const dateOpts=()=>[
  {l:'Tomorrow',v:'tomorrow',c:'g'},
  {l:'This week',v:'thisweek',c:'gr'},
  {l:'Next week',v:'nextweek',c:'gr'},
- {l:' Pick…',v:'custom',c:'gr'},
- {l:'Skip ›',v:'skip',c:'gr'},
+ {l:' Pick...',v:'custom',c:'gr'},
+ {l:'Skip >',v:'skip',c:'gr'},
 ];
 
-/* ─────────── Natural date parsing ─────────── */
+/* Natural date parsing */
 function extractDate(text){
  const lower=text.toLowerCase();
  const today=new Date(); today.setHours(0,0,0,0);
@@ -723,7 +723,7 @@ function extractDate(text){
  return {due, text: cleaned||text};
 }
 
-/* ─────────── Classifier ─────────── */
+/* Classifier */
 function classify(s){
  const lower=s.toLowerCase().trim();
  const taskVerbs=/^(call|email|send|buy|get|pick|pickup|finish|complete|do|make|prepare|review|check|schedule|book|pay|write|read|study|fix|update|create|build|design|plan|organize|organise|clean|wash|cook|order|submit|file|deliver|attend|meet|join|sign|return|cancel|renew|register|apply|message|text|reply|respond|follow up|remind|ask|tell|share|upload|download|install|setup|reset|change|move|copy|print|scan|sort|arrange|set|put|take|bring|fetch|grab|drop|go|visit|find|talk|train|practice|practise|workout|exercise|run|walk|drive|drop\sof|drop\soff|hire|fire|launch|ship|publish|upload|deploy|test|debug|configure|migrate|backup)\b/i;
@@ -733,15 +733,15 @@ function classify(s){
 
  if(taskVerbs.test(s)||taskHints.test(s)) return 'task';
  if(noteHints.test(s)||looksLikeData.test(s)) return 'note';
- // Default short-ish items to task — most dumps are tasks, not notes
+ // Default short-ish items to task - most dumps are tasks, not notes
  if(s.split(/\s+/).length<=8) return 'task';
- // Long sentence with "is/are/was" early on → note (factual statement)
+ // Long sentence with "is/are/was" early on ->note (factual statement)
  if(/^[A-Za-z\s]{0,30}\b(is|are|was|were)\s/i.test(s)) return 'note';
  // Otherwise default to task
  return 'task';
 }
 
-// Map for state header recognition (lowercase keys → canonical state name)
+// Map for state header recognition (lowercase keys ->canonical state name)
 const STATE_HEADER_MAP = {
  'delhi':'Delhi','dl':'Delhi','new delhi':'Delhi',
  'haryana':'Haryana','hr':'Haryana',
@@ -785,7 +785,7 @@ const STATE_HEADER_MAP = {
 function detectStateHeader(line){
  const norm=line.toLowerCase().replace(/[^\w\s\.]/g,'').trim();
  if(!norm) return null;
- // Header must be short — usually just the state name on its own line
+ // Header must be short - usually just the state name on its own line
  const wc=norm.split(/\s+/).length;
  if(wc>4) return null;
  if(STATE_HEADER_MAP[norm]) return STATE_HEADER_MAP[norm];
@@ -800,8 +800,8 @@ function parseDump(t){
  s=s
  .replace(/[ \t]+/g,' ')
  .replace(/(?:^|\s)(\d{1,3}|[a-zA-Z])\s*[\.\)\]\:]\s+/g,'\n')
- .replace(/(?:^|\s)(\d{1,3})\s+[-–—]\s+/g,'\n')
- .replace(/(?:^|\s)[•·▪◦*–—-]\s+/g,'\n');
+ .replace(/(?:^|\s)(\d{1,3})\s+[---]\s+/g,'\n')
+ .replace(/(?:^|\s)[.*---]\s+/g,'\n');
 
  const lineCount=s.split('\n').filter(x=>x.trim()).length;
  const hasStateHeaders=s.split('\n').some(line=>detectStateHeader(line.trim()));
@@ -816,8 +816,8 @@ function parseDump(t){
  function cleanChunk(chunk){
  return chunk.trim()
  .replace(/^\s*(?:\d{1,3}|[a-zA-Z])\s*[\.\)\]\:]\s+/,'')
- .replace(/^\s*\d{1,3}\s+[-–—]\s+/,'')
- .replace(/^\s*[•·▪◦*\-–—]\s+/,'')
+ .replace(/^\s*\d{1,3}\s+[---]\s+/,'')
+ .replace(/^\s*[.*\---]\s+/,'')
  .trim();
  }
 
@@ -877,7 +877,7 @@ function parseDump(t){
  state:item.state||''
  })).filter(item=>item.text.length>2);
 }
-/* ─────────── Main flow ─────────── */
+/* Main flow */
 function sendMsg(){
  const t=inp.value.trim();
  if(!t&&step&&(step.type==='due'||step.type==='bulk_due'||step.type==='category'||step.type==='bulk_cat'||step.type==='state'||step.type==='state_only'||step.type==='bulk_state'||step.type==='priority'||step.type==='priority_only'||step.type==='bulk_prio')){
@@ -892,7 +892,7 @@ function handleReply(value,label){
  if(step===null){
  addMsg(label,'user');
 
- // Phase 2: Detect shortcuts in the raw input — applies to ALL items in this dump
+ // Phase 2: Detect shortcuts in the raw input - applies to ALL items in this dump
  const sh=parseShortcuts(label);
  const cleanedLabel=sh.text;
  const sharedShortcuts=(sh.category||sh.due||sh.priority||sh.recur||sh.state);
@@ -945,7 +945,7 @@ function handleReply(value,label){
  </span>
  </div>`).join('');
  const noteSection=definiteNotes.length?`<div style="margin:5px 0;font-size:13px;color:#666"> ${definiteNotes.length} note${definiteNotes.length>1?'s':''} also saved</div>`:'';
- addMsg(` Quick-added <b>${definiteTasks.length}</b> task${definiteTasks.length>1?'s':''}!<div class="scard">${rows}</div>${noteSection}`);
+ addMsg(` Quick-added <b>${definiteTasks.length}</b>task${definiteTasks.length>1?'s':''}!<div class="scard">${rows}</div>${noteSection}`);
  return;
  }
  }
@@ -990,12 +990,12 @@ function handleReply(value,label){
  openDatePicker('',iso=>{
  if(!iso){rmQR();return;}
  pending.forEach(t=>{if(!t.due)t.due=iso;});
- addMsg(`Got it — all due <b>${fmtDate(iso)}</b>.`,'bot');
+ addMsg(`Got it - all due <b>${fmtDate(iso)}</b>.`,'bot');
  afterBulkDue();
  });
  } else if(value==='individual'){
  step={type:'due',idx:0};
- addMsg(`OK! <b>${esc(pending[0].text)}</b> — when is it due?${pending[0].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[0].due)+'</span>':''}`);
+ addMsg(`OK! <b>${esc(pending[0].text)}</b> - when is it due?${pending[0].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[0].due)+'</span>':''}`);
  setTimeout(()=>addQR(dateOpts()),30);
  } else {
  const due=resolveDue(value);
@@ -1007,8 +1007,8 @@ function handleReply(value,label){
  addMsg(label,'user');
  if(value==='individual'){
  step={type:'category',idx:0};
- addMsg(`Is <b>${esc(pending[0].text)}</b> work or personal?`);
- setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ addMsg(`Is <b>${esc(pending[0].text)}</b>work or personal?`);
+ setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip >',v:'skip',c:'gr'}]),30);
  } else if(value==='skip'){
  pending.forEach(t=>t.category='');
  askBulkState();
@@ -1049,7 +1049,7 @@ function handleReply(value,label){
  openDatePicker(cur.due||'',iso=>{
  if(iso){cur.due=iso;}
  const i=step.idx;
- addMsg(`Got it — due <b>${cur.due?fmtDate(cur.due):'No date'}</b>.`,'bot');
+ addMsg(`Got it - due <b>${cur.due?fmtDate(cur.due):'No date'}</b>.`,'bot');
  step={type:'category',idx:i};
  askIndivCat(i);
  });
@@ -1090,7 +1090,7 @@ function handleReply(value,label){
  if(next<pending.length){
  step={type:'due',idx:next};
  setTimeout(()=>{
- addMsg(`<b>${esc(pending[next].text)}</b> — when is it due?${pending[next].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[next].due)+'</span>':''}`);
+ addMsg(`<b>${esc(pending[next].text)}</b> - when is it due?${pending[next].due?'<br><span style="font-size:12px;color:#888">Detected: '+fmtDate(pending[next].due)+'</span>':''}`);
  setTimeout(()=>addQR(dateOpts()),30);
  },200);
  } else {finishFlow();}
@@ -1108,7 +1108,7 @@ function handleReply(value,label){
 
 function askClassify(){
  const cur=step.unsure[step.idx];
- addMsg(`Is <b>"${esc(cur)}"</b> a task or just info to remember?`);
+ addMsg(`Is <b>"${esc(cur)}"</b>a task or just info to remember?`);
  setTimeout(()=>addQR([
  {l:' Task',v:'task',c:'g'},
  {l:' Just a note',v:'note',c:'gr'},
@@ -1228,7 +1228,7 @@ function startTaskFlow(){
  li+=`<div style="margin-top:6px;font-size:12px;color:var(--wgl);font-weight:600"> ${esc(key)}</div>`;
  }
  byState[key].forEach(t=>{
- li+=`<div style="padding:2px 0 2px 8px;color:#333;font-size:14px">· ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`;
+ li+=`<div style="padding:2px 0 2px 8px;color:#333;font-size:14px">. ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`;
  });
  });
  const allDated=pending.every(t=>t.due);
@@ -1237,7 +1237,7 @@ function startTaskFlow(){
  addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b>${stateMsg} :<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for all of them?'}`);
  if(allDated){
  step={type:'bulk_cat'};
- setTimeout(()=>addQR([{l:'Work — all',v:'work',c:'b'},{l:'Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ setTimeout(()=>addQR([{l:'Work - all',v:'work',c:'b'},{l:'Personal - all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip >',v:'skip',c:'gr'}]),30);
  } else {
  setTimeout(()=>addQR([...dateOpts(),{l:'Set one by one',v:'individual',c:'gr'}]),30);
  }
@@ -1246,8 +1246,8 @@ function startTaskFlow(){
 
 function afterBulkDue(){
  step={type:'bulk_cat'};
- addMsg('Are these <b>Work</b> or <b>Personal</b>?');
- setTimeout(()=>addQR([{l:'Work — all',v:'work',c:'b'},{l:'Personal — all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ addMsg('Are these <b>Work</b>or <b>Personal</b>?');
+ setTimeout(()=>addQR([{l:'Work - all',v:'work',c:'b'},{l:'Personal - all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip >',v:'skip',c:'gr'}]),30);
 }
 
 function stateOpts(includeKeep){
@@ -1262,7 +1262,7 @@ function stateOpts(includeKeep){
  {l:'GJ',v:'Gujarat',c:'gr'},
  {l:'UP',v:'Uttar Pradesh',c:'gr'},
  {l:'Set one by one',v:'individual',c:'gr'},
- {l:'Skip ›',v:'skip',c:'gr'}
+ {l:'Skip >',v:'skip',c:'gr'}
  );
  return opts;
 }
@@ -1285,12 +1285,12 @@ function askBulkState(){
 function askBulkPriority(){
  step={type:'bulk_prio'};
  addMsg('Priority?');
- setTimeout(()=>addQR([{l:'High — all',v:'high',c:'r'},{l:'Medium — all',v:'med',c:'o'},{l:'Low — all',v:'low',c:'g'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ setTimeout(()=>addQR([{l:'High - all',v:'high',c:'r'},{l:'Medium - all',v:'med',c:'o'},{l:'Low - all',v:'low',c:'g'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip >',v:'skip',c:'gr'}]),30);
 }
 
 function askIndivCat(i){
- addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
- setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ addMsg(`Is <b>${esc(pending[i].text)}</b>work or personal?`);
+ setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip >',v:'skip',c:'gr'}]),30);
 }
 
 function askIndivState(i){
@@ -1304,13 +1304,13 @@ function askIndivState(i){
  {l:'MH',v:'Maharashtra',c:'gr'},
  {l:'GJ',v:'Gujarat',c:'gr'},
  {l:'UP',v:'Uttar Pradesh',c:'gr'},
- {l:'Skip ›',v:'skip',c:'gr'},
+ {l:'Skip >',v:'skip',c:'gr'},
  ]),30);
 }
 
 function askIndivPrio(i){
  addMsg(`Priority for <b>${esc(pending[i].text)}</b>?`);
- setTimeout(()=>addQR([{l:'High',v:'high',c:'r'},{l:'Medium',v:'med',c:'o'},{l:'Low',v:'low',c:'g'},{l:'Skip ›',v:'skip',c:'gr'}]),30);
+ setTimeout(()=>addQR([{l:'High',v:'high',c:'r'},{l:'Medium',v:'med',c:'o'},{l:'Low',v:'low',c:'g'},{l:'Skip >',v:'skip',c:'gr'}]),30);
 }
 
 function finishFlow(){
@@ -1326,13 +1326,29 @@ function finishFlow(){
  <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
  </span>
  </div>`).join('');
- addMsg(` Added <b>${pending.length}</b> task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
+ addMsg(` Added <b>${pending.length}</b>task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
  pending=[];step=null;
 }
 
 function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever ");}
 
-/* ─────────── Tabs ─────────── */
+/* Tabs */
+function goBack(){
+ // If a modal is open, close it
+ const openModal=document.querySelector('.modal-bg.open');
+ if(openModal){openModal.classList.remove('open');return;}
+ // If search is open, close it
+ const app=document.getElementById('app');
+ if(app.classList.contains('search-open')){closeSearch();return;}
+ // If menu is open, close it
+ const menu=document.getElementById('menu-pop');
+ if(menu&&menu.classList.contains('open')){closeMenu();return;}
+ // If on a non-chat tab, go back to chat
+ if(currentTab&&currentTab!=='chat'){switchTab('chat');return;}
+ // Otherwise - try to navigate browser back, or do nothing
+ if(history.length>1){history.back();}
+}
+
 function switchTab(t){
  if(!['chat','tasks','notes','cal'].includes(t)) t='chat';
  currentTab=t;
@@ -1373,12 +1389,12 @@ function updateSub(){
  const today=tasks.filter(t=>!t.done&&t.due===isoToday()).length;
  const overdue=tasks.filter(t=>!t.done&&t.due&&dStatus(t.due)==='overdue').length;
  let txt=n+' task'+(n!==1?'s':'');
- if(overdue>0) txt+=' · '+overdue+' overdue';
- else if(today>0) txt+=' · '+today+' today';
+ if(overdue>0) txt+=' . '+overdue+' overdue';
+ else if(today>0) txt+=' . '+today+' today';
  document.getElementById('hdr-sub').textContent=txt||'tap to manage tasks';
 }
 
-/* ─────────── Tasks list ─────────── */
+/* Tasks list */
 function taskState(t){return (t.state||'').trim();}
 function stateFilterValue(state){return 'state:'+state;}
 function activeTasksForStateFilters(){
@@ -1418,7 +1434,7 @@ function renderGroupedByState(list, filtered){
  const g=document.createElement('div');
  g.className='tgrp';
  const title=key==='_none'?'No state':key;
- g.innerHTML=`<div class="tglbl" style="color:${key==='_none'?'var(--wmuted)':'#4338ca'}"> ${esc(title)} · ${byState[key].length}</div>`;
+ g.innerHTML=`<div class="tglbl" style="color:${key==='_none'?'var(--wmuted)':'#4338ca'}"> ${esc(title)} . ${byState[key].length}</div>`;
  byState[key].sort(sortTasksForList).forEach(t=>g.appendChild(createTaskCard(t)));
  list.appendChild(g);
  });
@@ -1491,7 +1507,7 @@ function createTaskCard(t){
  const prioBit=t.priority&&t.priority!=='med'?`<span class="tprio ${t.priority}">${t.priority==='high'?'High':'Low'}</span>`:'';
  const catBit=t.category?`<span class="tcat ${t.category}">${t.category==='work'?'Work':'Personal'}</span>`:'';
  const dateBit=t.due?`<span class="tdate ${ds2}">${fmtDate(t.due)}</span>`:'';
- const recBit=t.recur?`<span class="recur-badge">↻ ${t.recur}</span>`:'';
+ const recBit=t.recur?`<span class="recur-badge">~ ${t.recur}</span>`:'';
  const stateBit=t.state?`<span class="tstate"> ${esc(t.state)}</span>`:'';
  const meta=(prioBit||catBit||dateBit||recBit||stateBit)?`<div class="tmeta">${prioBit}${catBit}${dateBit}${recBit}${stateBit}</div>`:'';
  c.innerHTML=`
@@ -1564,12 +1580,12 @@ function toggleDone(id){
  if(!t)return;
  const wasDone=t.done;
 
- // Recurring task — when marked done, advance the date instead
+ // Recurring task - when marked done, advance the date instead
  if(!wasDone && t.recur && t.due){
  const oldDue=t.due;
  t.due=nextOccurrence(t.due, t.recur);
  saveAll();renderTasks();updateSub();
- showToast(`Done — repeats on ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
+ showToast(`Done - repeats on ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
  return;
  }
 
@@ -1580,7 +1596,7 @@ function toggleDone(id){
  }
 }
 
-/* ─────────── Edit task modal ─────────── */
+/* Edit task modal */
 function openEdit(id){
  const t=tasks.find(x=>x.id===id); if(!t)return;
  editingTaskId=id;
@@ -1644,7 +1660,7 @@ function deleteTaskFromEdit(){
  showToast('Task deleted',()=>{tasks.splice(idx,0,removed);saveAll();renderTasks();updateSub();});
 }
 
-/* ─────────── Notes ─────────── */
+/* Notes */
 function renderNotes(){
  const list=document.getElementById('notes-list');list.innerHTML='';
  if(!notes.length){
@@ -1656,8 +1672,8 @@ function renderNotes(){
  const card=document.createElement('div');
  card.className='ncard';
  const when=n.at?new Date(n.at):new Date();
- const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' · '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
- card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del">×</div>`;
+ const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+ card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del"></div>`;
  card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
  card.addEventListener('click',()=>openEditNote(n.id));
  list.appendChild(card);
@@ -1697,7 +1713,7 @@ function deleteNote(id,silent){
  else showToast('Note deleted',()=>{notes.splice(idx,0,removed);saveAll();renderNotes();updateSub();});
 }
 
-/* ─────────── Custom date picker ─────────── */
+/* Custom date picker */
 function openDatePicker(currentVal,cb){
  datePickerCallback=cb;
  document.getElementById('custom-date').value=currentVal||isoToday();
@@ -1713,7 +1729,7 @@ function confirmDatePicker(){
  if(datePickerCallback){datePickerCallback(v);datePickerCallback=null;}
 }
 
-/* ─────────── Search ─────────── */
+/* Search */
 function openSearch(){
  closeMenu();
  document.getElementById('app').classList.add('search-open');
@@ -1744,7 +1760,7 @@ function renderSearch(q){
  const out=document.getElementById('search-results');
  q=q.trim().toLowerCase();
  if(!q){
- out.innerHTML=`<div class="sr-empty">Type to search across tasks and notes…</div>`;
+ out.innerHTML=`<div class="sr-empty">Type to search across tasks and notes...</div>`;
  return;
  }
  const matchT=tasks.filter(t=>t.text.toLowerCase().includes(q));
@@ -1756,7 +1772,7 @@ function renderSearch(q){
  out.innerHTML='';
  if(matchT.length){
  const sec=document.createElement('div');sec.className='sr-section';
- sec.innerHTML=`<div class="sr-h">Tasks · ${matchT.length}</div>`;
+ sec.innerHTML=`<div class="sr-h">Tasks . ${matchT.length}</div>`;
  matchT.forEach(t=>{
  const c=createTaskCard({...t,text:hl(t.text,q)});
  // hl returns html; since our createTaskCard escapes the name, build manually
@@ -1767,12 +1783,12 @@ function renderSearch(q){
  }
  if(matchN.length){
  const sec=document.createElement('div');sec.className='sr-section';
- sec.innerHTML=`<div class="sr-h">Notes · ${matchN.length}</div>`;
+ sec.innerHTML=`<div class="sr-h">Notes . ${matchN.length}</div>`;
  matchN.forEach(n=>{
  const card=document.createElement('div');
  card.className='ncard';
  const when=n.at?new Date(n.at):new Date();
- const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' · '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+ const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
  card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${hl(esc(n.text),q)}</div><div class="ncard-time">${wt}</div></div>`;
  card.onclick=()=>{closeSearch();switchTab('notes');setTimeout(()=>openEditNote(n.id),100);};
  sec.appendChild(card);
@@ -1787,7 +1803,7 @@ function hl(text,q){
  return text.replace(re,'<mark>$1</mark>');
 }
 
-/* ─────────── Menu ─────────── */
+/* Menu */
 function toggleMenu(e){
  if(e)e.stopPropagation();
  document.getElementById('menu-pop').classList.toggle('open');
@@ -1823,7 +1839,7 @@ function confirmClearChat(){
  });
 }
 
-/* ─────────── Confirm dialog ─────────── */
+/* Confirm dialog */
 function showConfirm(title,msg,cb){
  document.getElementById('confirm-title').textContent=title;
  document.getElementById('confirm-msg').textContent=msg;
@@ -1833,7 +1849,7 @@ function showConfirm(title,msg,cb){
 }
 function closeConfirm(){document.getElementById('confirm-modal').classList.remove('open');}
 
-/* ─────────── Toast / Undo ─────────── */
+/* Toast / Undo */
 function showToast(msg,undoFn){
  const t=document.getElementById('toast');
  document.getElementById('toast-msg').textContent=msg;
@@ -1850,7 +1866,7 @@ function doUndo(){
  clearTimeout(toastTimer);
 }
 
-/* ─────────── Phase 2: Recurring tasks ─────────── */
+/* Phase 2: Recurring tasks */
 function nextOccurrence(iso, recur){
  if(!iso||!recur) return iso;
  const d=new Date(iso+'T00:00:00');
@@ -1865,7 +1881,7 @@ function pickEditRep(el){
  el.style.opacity='1';el.style.background='#e8f5e9';
 }
 
-/* ─────────── Phase 2: Notifications ─────────── */
+/* Phase 2: Notifications */
 async function enableNotifications(){
  closeMenu();
  if(!('Notification' in window)){showToast('Notifications not supported on this device');return;}
@@ -1876,7 +1892,7 @@ async function enableNotifications(){
  return;
  }
  if(Notification.permission==='denied'){
- showToast('Permission was denied — enable in browser settings');
+ showToast('Permission was denied - enable in browser settings');
  return;
  }
  try{
@@ -1940,7 +1956,7 @@ function runNotificationCheck(){
  localStorage.setItem('td_notified_v1', JSON.stringify(notified));
 }
 
-/* ─────────── Phase 2: Quick-add shortcuts ─────────── */
+/* Phase 2: Quick-add shortcuts */
 // !w=work, !p=personal, !t=today, !tm=tomorrow, !h=high, !l=low, !m=medium, !d=daily, !wk=weekly, !mp/!mh/etc=state
 function parseShortcuts(text){
  const tokens={category:'',due:'',priority:'',recur:'',state:''};
@@ -1964,7 +1980,7 @@ function parseShortcuts(text){
  return {text:cleaned, ...tokens};
 }
 
-/* ─────────── Phase 2: Snooze (swipe right on task) ─────────── */
+/* Phase 2: Snooze (swipe right on task) */
 function snoozeTask(id, days){
  const t=tasks.find(x=>x.id===id); if(!t) return;
  const oldDue=t.due;
@@ -1976,7 +1992,7 @@ function snoozeTask(id, days){
  showToast(`Snoozed to ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
 }
 
-/* ─────────── Phase 2: Import backup ─────────── */
+/* Phase 2: Import backup */
 function importData(){
  closeMenu();
  document.getElementById('import-input').click();
@@ -2005,7 +2021,7 @@ document.getElementById('import-input').addEventListener('change', e=>{
  reader.readAsText(file);
 });
 
-/* ─────────── Calendar quick-add ─────────── */
+/* Calendar quick-add */
 let quickAddDate=null;
 
 function openQuickAdd(iso){
@@ -2014,14 +2030,14 @@ function openQuickAdd(iso){
  const today=isoToday();
  const diff=Math.round((d-new Date(today+'T00:00:00'))/86400000);
  let label=d.toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'});
- if(diff===0) label+=' · Today';
- else if(diff===1) label+=' · Tomorrow';
- else if(diff===-1) label+=' · Yesterday';
+ if(diff===0) label+=' . Today';
+ else if(diff===1) label+=' . Tomorrow';
+ else if(diff===-1) label+=' . Yesterday';
 
  document.getElementById('quickadd-title').textContent='Add task';
  document.getElementById('quickadd-sub').textContent=label;
  document.getElementById('quickadd-text').value='';
- // reset selections — default: no category, med priority
+ // reset selections - default: no category, med priority
  document.querySelectorAll('#quickadd-modal [data-qcat]').forEach(b=>{
  const sel=b.dataset.qcat==='';
  b.style.opacity=sel?'1':'.4';b.style.background=sel?'#f0f7ff':'#fff';
@@ -2079,7 +2095,7 @@ function saveQuickAdd(){
  });
 }
 
-/* ─────────── Calendar ─────────── */
+/* Calendar */
 let calMode='week'; // 'month' | 'week'
 let calCursor=new Date(); // anchor date
 let calSelected=null; // selected date in month view (ISO string)
@@ -2136,7 +2152,7 @@ function renderMonth(){
  const monthName=calCursor.toLocaleDateString('en',{month:'long',year:'numeric'});
  document.getElementById('cal-title').textContent=monthName;
 
- // Build grid: 6 weeks × 7 days, starting Sunday
+ // Build grid: 6 weeks 7 days, starting Sunday
  const first=new Date(year,month,1);
  const startDay=first.getDay(); // 0=Sun
  const daysInMonth=new Date(year,month+1,0).getDate();
@@ -2178,12 +2194,12 @@ function renderMonth(){
  const dateObj=new Date(calSelected+'T00:00:00');
  const head=dateObj.toLocaleDateString('en',{weekday:'long',month:'short',day:'numeric'});
  let panel=`<div class="cal-day-panel"><div class="cal-day-panel-h"><span>${head}</span>`;
- if(items.length===0) panel+=`<span class="free-label"> Free</span>`;
+ if(items.length===0) panel+=`<span class="free-label">Free</span>`;
  else if(items.length>=4) panel+=`<span class="busy-label">! Busy</span>`;
  else panel+=`<span style="color:var(--wmuted);font-size:12px">${items.length} task${items.length>1?'s':''}</span>`;
  panel+=`</div>`;
  if(!items.length){
- panel+=`<div style="font-size:13px;color:var(--wmuted);text-align:center;padding:6px 0">No tasks scheduled — good time to slot in a meeting </div>`;
+ panel+=`<div style="font-size:13px;color:var(--wmuted);text-align:center;padding:6px 0">No tasks scheduled - good time to slot in a meeting </div>`;
  } else {
  items.forEach(t=>{
  panel+=`<div class="cal-week-task" data-id="${t.id}" onclick="openEdit('${t.id}')">
@@ -2243,7 +2259,7 @@ function renderWeek(){
 
  const startStr=start.toLocaleDateString('en',{month:'short',day:'numeric'});
  const endStr=end.toLocaleDateString('en',{month:'short',day:'numeric',year:start.getFullYear()!==end.getFullYear()||start.getMonth()!==end.getMonth()?undefined:undefined});
- document.getElementById('cal-title').textContent=`${startStr} – ${endStr}`;
+ document.getElementById('cal-title').textContent=`${startStr} - ${endStr}`;
 
  const today=isoToday();
  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
@@ -2271,7 +2287,7 @@ function renderWeek(){
  <div class="cal-week-tasks">`;
 
  if(!items.length){
- html+=`<div class="cal-week-empty"> Free — open for plans</div>`;
+ html+=`<div class="cal-week-empty">Free - open for plans</div>`;
  } else {
  items.forEach(t=>{
  html+=`<div class="cal-week-task" onclick="openEdit('${t.id}')">
@@ -2303,15 +2319,15 @@ if(chatLog.length>0){
  if(hoursSince>3){
  setTimeout(()=>{
  const div=document.createElement('div');div.className='date-div';
- div.innerHTML=`<span>Welcome back · ${new Date().toLocaleDateString('en',{month:'short',day:'numeric'})}</span>`;
+ div.innerHTML=`<span>Welcome back . ${new Date().toLocaleDateString('en',{month:'short',day:'numeric'})}</span>`;
  chatEl.appendChild(div);chatEl.scrollTop=chatEl.scrollHeight;
  },200);
  }
 } else {
  setTimeout(()=>{addMsg("Hey! ");},300);
- setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything — tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" ");},1000);
- setTimeout(()=>{addMsg(" <b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
- setTimeout(()=>{addMsg("Long-press any task to edit • Swipe right to snooze • Tap in menu for reminders.");},3000);
+ setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" ");},1000);
+ setTimeout(()=>{addMsg(" <b>Quick shortcuts:</b>add <code>!t</code>for today, <code>!w</code>for work, <code>!h</code>for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
+ setTimeout(()=>{addMsg("Long-press any task to edit Swipe right to snooze Tap in menu for reminders.");},3000);
 }
 </script>
 </body>
