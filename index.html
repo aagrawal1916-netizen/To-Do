@@ -29,7 +29,9 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 
 /* Header */
 .hdr{display:flex;align-items:center;gap:8px;padding:6px 10px 6px 2px;background:var(--wg);min-height:54px;flex-shrink:0}
-.hdr-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.hdr-back{width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:rgba(255,255,255,.2);user-select:none}
+.hdr-back:active{background:rgba(255,255,255,.15);border-radius:50%}
+.hdr-back svg{pointer-events:none}
 .hdr-av{width:38px;height:38px;border-radius:50%;background:var(--wteal);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;color:#fff;flex-shrink:0;cursor:pointer;letter-spacing:-.5px}
 .hdr-info{flex:1;min-width:0;cursor:pointer}
 .hdr-name{font-size:16px;font-weight:600;color:#fff;line-height:1.2}
