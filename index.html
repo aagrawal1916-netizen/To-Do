@@ -218,7 +218,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 .tc.flash{animation:pulse .3s}
 
 /* swipe to snooze */
-.tc-wrap{position:relative;margin-bottom:4px;overflow:hidden;border-radius:8px}
+.tc-wrap{position:relative;margin-bottom:4px;overflow:hidden;border-radius:8px;touch-action:pan-y}
 .tc-wrap .tc{margin-bottom:0;transition:transform .2s ease-out}
 .tc-wrap.swiping .tc{transition:none}
 .tc-bg{position:absolute;inset:0;background:linear-gradient(90deg, var(--wmed) 0%, #f97316 100%);display:flex;align-items:center;justify-content:flex-end;padding-right:18px;color:#fff;font-size:13px;font-weight:600;border-radius:8px;gap:6px}
@@ -370,9 +370,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="cal-mode active" id="cal-mode-week" onclick="setCalMode('week')">Week</div>
  </div>
  <div class="cal-nav">
- <div class="cal-nav-btn" onclick="calNav(-1)"><</div>
+ <div class="cal-nav-btn" onclick="calNav(-1)">&lt;</div>
  <div class="cal-title" id="cal-title" onclick="calToday()"></div>
- <div class="cal-nav-btn" onclick="calNav(1)">></div>
+ <div class="cal-nav-btn" onclick="calNav(1)">&gt;</div>
  </div>
  <div id="cal-body"></div>
  </div>
@@ -1624,15 +1624,15 @@ function toggleDone(id){
  if(!wasDone && t.recur && t.due){
  const oldDue=t.due;
  t.due=nextOccurrence(t.due, t.recur);
- saveAll();renderTasks();updateSub();
- showToast(`Done - repeats on ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
+ saveAll();refreshCurrentView();
+ showToast(`Done - repeats on ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();refreshCurrentView();});
  return;
  }
 
  t.done=!t.done;
- saveAll();renderTasks();updateSub();
+ saveAll();refreshCurrentView();
  if(!wasDone){
- showToast('Task completed',()=>{t.done=false;saveAll();renderTasks();updateSub();});
+ showToast('Task completed',()=>{t.done=false;saveAll();refreshCurrentView();});
  }
 }
 
@@ -1685,8 +1685,15 @@ function saveEdit(){
  t.recur=repSel?repSel.dataset.rep:'';
  saveAll();
  closeEdit();
- renderTasks();updateSub();
+ refreshCurrentView();
  showToast('Task updated');
+}
+
+function refreshCurrentView(){
+ updateSub();
+ if(currentTab==='tasks') renderTasks();
+ else if(currentTab==='cal') renderCalendar();
+ else if(currentTab==='notes') renderNotes();
 }
 
 function deleteTaskFromEdit(){
@@ -1696,8 +1703,8 @@ function deleteTaskFromEdit(){
  const removed=tasks.splice(idx,1)[0];
  saveAll();
  closeEdit();
- renderTasks();updateSub();
- showToast('Task deleted',()=>{tasks.splice(idx,0,removed);saveAll();renderTasks();updateSub();});
+ refreshCurrentView();
+ showToast('Task deleted',()=>{tasks.splice(idx,0,removed);saveAll();refreshCurrentView();});
 }
 
 /* Notes */
@@ -2028,8 +2035,8 @@ function snoozeTask(id, days){
  const d=new Date(base+'T00:00:00');
  d.setDate(d.getDate()+days);
  t.due=isoLocal(d);
- saveAll();renderTasks();updateSub();
- showToast(`Snoozed to ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();renderTasks();updateSub();});
+ saveAll();refreshCurrentView();
+ showToast(`Snoozed to ${fmtDate(t.due)}`,()=>{t.due=oldDue;saveAll();refreshCurrentView();});
 }
 
 /* Phase 2: Import backup */
@@ -2051,7 +2058,8 @@ document.getElementById('import-input').addEventListener('change', e=>{
  saveAll();updateSub();
  if(currentTab==='tasks') renderTasks();
  else if(currentTab==='notes') renderNotes();
- showToast('Backup imported ');
+ else if(currentTab==='cal') renderCalendar();
+ showToast('Backup imported');
  });
  }catch(err){
  showToast('Could not read backup file');
@@ -2126,12 +2134,12 @@ function saveQuickAdd(){
  createdAt: Date.now()
  };
  tasks.push(newTask);
- saveAll();updateSub();
+ saveAll();
  closeQuickAdd();
- renderCalendar();
+ refreshCurrentView();
  showToast('Added to '+fmtDate(due),()=>{
  const i=tasks.findIndex(x=>x.id===newTask.id);
- if(i>=0){tasks.splice(i,1);saveAll();updateSub();renderCalendar();}
+ if(i>=0){tasks.splice(i,1);saveAll();refreshCurrentView();}
  });
 }
 
