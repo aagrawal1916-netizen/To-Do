@@ -1,4 +1,4 @@
-const CACHE_NAME = 'taskdump-v26';
+const CACHE_NAME = 'taskdump-v27';
 const ASSETS = [
   './',
   './index.html',

@@ -217,11 +217,36 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 @keyframes pulse{0%,100%{background:#fff}50%{background:#e3f2fd}}
 .tc.flash{animation:pulse .3s}
 
-/* swipe to snooze */
+/* swipe to snooze / delete */
 .tc-wrap{position:relative;margin-bottom:4px;overflow:hidden;border-radius:8px;touch-action:pan-y}
 .tc-wrap .tc{margin-bottom:0;transition:transform .2s ease-out}
 .tc-wrap.swiping .tc{transition:none}
-.tc-bg{position:absolute;inset:0;background:linear-gradient(90deg, var(--wmed) 0%, #f97316 100%);display:flex;align-items:center;justify-content:flex-end;padding-right:18px;color:#fff;font-size:13px;font-weight:600;border-radius:8px;gap:6px}
+.tc-bg{position:absolute;inset:0;background:linear-gradient(90deg,var(--wmed) 0%,#f97316 100%);display:flex;align-items:center;justify-content:flex-end;padding-right:18px;color:#fff;font-size:13px;font-weight:600;border-radius:8px;gap:6px}
+.tc-bg-left{position:absolute;inset:0;background:linear-gradient(90deg,#ef4444 0%,#dc2626 100%);display:flex;align-items:center;justify-content:flex-start;padding-left:18px;color:#fff;font-size:13px;font-weight:600;border-radius:8px;gap:6px;opacity:0}
+.tc-wrap.swipe-left .tc-bg-left{opacity:1}
+.tc-wrap.swipe-left .tc-bg{opacity:0}
+
+/* drag-to-move mode */
+.tc.drag-active{
+ box-shadow:0 6px 20px rgba(0,0,0,.25);
+ transform:scale(1.03);
+ z-index:50;
+ position:relative;
+ background:#fffbe6;
+ border:2px solid var(--wmed);
+}
+.tgrp.drop-target{
+ background:rgba(37,211,102,.12);
+ border-radius:10px;
+ outline:2px dashed var(--wteal);
+ outline-offset:-4px;
+ transition:all .15s;
+}
+.tgrp.drop-target .tglbl{color:var(--wgl)}
+
+/* drag handle hint pulse */
+@keyframes dragPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.tc.drag-pulse{animation:dragPulse .4s ease-out 1}
 .tc-bg svg{flex-shrink:0}
 
 /* drag reorder */
@@ -1520,6 +1545,7 @@ function renderTasks(){
 
  Object.keys(groups).sort((a,b)=>a==='_nd'?1:b==='_nd'?-1:a.localeCompare(b)).forEach(key=>{
  const g=document.createElement('div');g.className='tgrp';
+ g.dataset.dateKey=key;
  const ds=dStatus(key);
  const lc=ds==='overdue'?'var(--whigh)':ds==='today'?'var(--wmed)':'var(--wmuted)';
  g.innerHTML=`<div class="tglbl" style="color:${lc}">${key==='_nd'?'No date':fmtDate(key)}</div>`;
@@ -1532,10 +1558,15 @@ function renderTasks(){
 }
 
 function createTaskCard(t){
- // wrap card in a swipeable container
+ // wrap card in a swipeable container with both right (snooze) and left (delete) backgrounds
  const wrap=document.createElement('div');
  wrap.className='tc-wrap';
- wrap.innerHTML=`<div class="tc-bg">
+ wrap.innerHTML=`
+ <div class="tc-bg-left">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/></svg>
+ <span>Delete</span>
+ </div>
+ <div class="tc-bg">
  <span>Snooze 1 day</span>
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
  </div>`;
@@ -1559,58 +1590,179 @@ function createTaskCard(t){
  </div>`;
  wrap.appendChild(c);
 
- // Swipe to snooze (right-swipe). Pointer-based to handle long-press too.
- let startX=null, startY=null, currentX=0, swiping=false, swipeFired=false;
+ // --- Gesture state ---
+ // tap: brief touch with no movement -> toggle done
+ // long-press (500ms hold, no movement): vibrate + enter DRAG MODE
+ //   while in drag: follow finger, highlight drop targets, on release: change date or cancel
+ // horizontal swipe right (>10px, before long-press fires): snooze
+ // horizontal swipe left: delete
+ let startX=null, startY=null, currentX=0;
+ let mode='idle'; // 'idle' | 'swipe' | 'drag' | 'cancel'
+ let actionFired=false;
  const SWIPE_TRIGGER=80;
+ const LONG_PRESS_MS=500;
 
  c.addEventListener('pointerdown',e=>{
- longPressed=false; swipeFired=false;
+ if(t.done) return;
  startX=e.clientX; startY=e.clientY; currentX=0;
+ mode='idle'; actionFired=false;
+ // start long-press timer
  pressTimer=setTimeout(()=>{
- if(swiping) return;
- longPressed=true;openEdit(t.id);if(navigator.vibrate)navigator.vibrate(40);
- },500);
+ if(mode!=='idle') return;
+ enterDragMode();
+ },LONG_PRESS_MS);
  });
 
+ function enterDragMode(){
+ mode='drag';
+ c.classList.add('drag-active','drag-pulse');
+ if(navigator.vibrate) navigator.vibrate([30,40,30]);
+ }
+
+ function exitDragMode(){
+ c.classList.remove('drag-active','drag-pulse');
+ c.style.transform='';
+ c.style.position='';
+ c.style.left='';
+ c.style.top='';
+ c.style.width='';
+ c.style.pointerEvents='';
+ // remove any drop-target highlights
+ document.querySelectorAll('.tgrp.drop-target').forEach(g=>g.classList.remove('drop-target'));
+ }
+
  c.addEventListener('pointermove',e=>{
- if(startX===null||t.done) return;
+ if(startX===null) return;
  const dx=e.clientX-startX;
- const dy=Math.abs(e.clientY-startY);
- // Need clearly horizontal movement to engage swipe
- if(!swiping && Math.abs(dx)>10 && dy<15){
- swiping=true;
+ const dy=e.clientY-startY;
+ const adx=Math.abs(dx);
+ const ady=Math.abs(dy);
+
+ if(mode==='idle'){
+ // Decide: vertical scroll (cancel), horizontal swipe, or wait for long-press
+ if(ady>15 && ady>adx){
+ // vertical scroll -> cancel everything
+ mode='cancel';
+ clearTimeout(pressTimer);
+ return;
+ }
+ if(adx>10 && ady<15){
+ // horizontal swipe
+ mode='swipe';
  wrap.classList.add('swiping');
  clearTimeout(pressTimer);
  }
- if(swiping && dx>0){
- currentX=Math.min(dx, 200);
+ }
+
+ if(mode==='swipe'){
+ currentX=Math.max(-200, Math.min(dx, 200));
  c.style.transform=`translateX(${currentX}px)`;
+ if(currentX<-5) wrap.classList.add('swipe-left');
+ else wrap.classList.remove('swipe-left');
+ }
+
+ if(mode==='drag'){
+ // follow finger - just move with translate, keep in flow visually via transform
+ c.style.transform=`translate(${dx}px, ${dy}px)`;
+ // figure out which date group the finger is over
+ // temporarily hide the dragged card from hit detection
+ c.style.pointerEvents='none';
+ const el=document.elementFromPoint(e.clientX, e.clientY);
+ c.style.pointerEvents='';
+ highlightDropTarget(el);
  }
  });
 
- const finishSwipe=()=>{
- if(swiping){
- wrap.classList.remove('swiping');
+ function highlightDropTarget(el){
+ document.querySelectorAll('.tgrp.drop-target').forEach(g=>g.classList.remove('drop-target'));
+ if(!el) return;
+ const grp=el.closest('.tgrp');
+ if(grp && grp.dataset.dateKey && grp.dataset.dateKey !== (t.due||'_nd')){
+ grp.classList.add('drop-target');
+ }
+ }
+
+ const finishGesture=(e)=>{
+ if(mode==='swipe'){
+ wrap.classList.remove('swiping','swipe-left');
  if(currentX>SWIPE_TRIGGER){
- // animate off then snooze
+ // right swipe -> snooze
  c.style.transform='translateX(100%)';
- swipeFired=true;
+ actionFired=true;
  setTimeout(()=>{c.style.transform='';snoozeTask(t.id, 1);},150);
+ } else if(currentX<-SWIPE_TRIGGER){
+ // left swipe -> delete with undo
+ c.style.transform='translateX(-100%)';
+ actionFired=true;
+ setTimeout(()=>{
+ const idx=tasks.findIndex(x=>x.id===t.id);
+ if(idx<0) return;
+ const removed=tasks.splice(idx,1)[0];
+ saveAll();refreshCurrentView();
+ showToast('Task deleted',()=>{tasks.splice(idx,0,removed);saveAll();refreshCurrentView();});
+ },150);
  } else {
  c.style.transform='';
  }
  }
- swiping=false; startX=null; currentX=0;
+
+ if(mode==='drag'){
+ // Find drop target group
+ const targetGrp=document.querySelector('.tgrp.drop-target');
+ if(targetGrp){
+ const newDate=targetGrp.dataset.dateKey;
+ const oldDate=t.due;
+ t.due=(newDate==='_nd')?'':newDate;
+ saveAll();
+ if(navigator.vibrate) navigator.vibrate(20);
+ const niceName=newDate==='_nd'?'No date':fmtDate(newDate);
+ showToast(`Moved to ${niceName}`,()=>{t.due=oldDate;saveAll();refreshCurrentView();});
+ actionFired=true;
+ } else {
+ // Long-pressed but didn't drag anywhere - treat as edit shortcut
+ const dx=Math.abs((e&&e.clientX!==undefined?e.clientX-startX:0));
+ const dy=Math.abs((e&&e.clientY!==undefined?e.clientY-startY:0));
+ if(dx<10 && dy<10){
+ actionFired=true;
+ setTimeout(()=>openEdit(t.id),50);
+ }
+ }
+ exitDragMode();
+ if(actionFired && document.querySelector('.tgrp.drop-target')) refreshCurrentView();
+ if(actionFired && !document.querySelector('.tgrp.drop-target')){
+   // already handled (edit case) - no need to refresh
+ }
+ }
+
+ mode='idle'; startX=null; currentX=0;
  };
 
  c.addEventListener('pointerup',e=>{
  clearTimeout(pressTimer);
- if(swiping){finishSwipe();return;}
- if(!longPressed && !swipeFired){toggleDone(t.id);}
- startX=null;
+ const wasDrag=mode==='drag';
+ const wasSwipe=mode==='swipe';
+ finishGesture(e);
+ // Only treat as tap if no movement happened and timer didn't fire
+ if(!wasDrag && !wasSwipe && !actionFired){
+ toggleDone(t.id);
+ }
  });
- c.addEventListener('pointerleave',()=>{clearTimeout(pressTimer);if(swiping){finishSwipe();}});
- c.addEventListener('pointercancel',()=>{clearTimeout(pressTimer);if(swiping){c.style.transform='';wrap.classList.remove('swiping');swiping=false;startX=null;}});
+
+ c.addEventListener('pointercancel',()=>{
+ clearTimeout(pressTimer);
+ if(mode==='drag') exitDragMode();
+ if(mode==='swipe'){
+ c.style.transform='';
+ wrap.classList.remove('swiping','swipe-left');
+ }
+ mode='idle'; startX=null; currentX=0;
+ });
+
+ c.addEventListener('pointerleave',()=>{
+ clearTimeout(pressTimer);
+ // Don't auto-finish on leave during drag - the finger has moved off
+ // pointerup will fire eventually
+ });
 
  return wrap;
 }
@@ -2375,7 +2527,7 @@ if(chatLog.length>0){
  setTimeout(()=>{addMsg("Hey! ");},300);
  setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" ");},1000);
  setTimeout(()=>{addMsg(" <b>Quick shortcuts:</b>add <code>!t</code>for today, <code>!w</code>for work, <code>!h</code>for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
- setTimeout(()=>{addMsg("Long-press any task to edit Swipe right to snooze Tap in menu for reminders.");},3000);
+ setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
 }
 </script>
 </body>
