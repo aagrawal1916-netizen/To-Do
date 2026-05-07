@@ -2528,8 +2528,13 @@ function cellHTML(iso,day,outside,isToday,isSelected){
 }
 
 function selectCalDay(iso){
- calSelected = (calSelected===iso) ? null : iso;
+ calSelected = iso; // always select (don't toggle off - tapping again just keeps it)
  renderMonth();
+ // Scroll the day panel into view so user sees the tasks
+ setTimeout(()=>{
+ const panel=document.querySelector('.cal-day-panel');
+ if(panel) panel.scrollIntoView({behavior:'smooth',block:'center'});
+ },80);
 }
 
 function renderWeek(){
@@ -2541,12 +2546,21 @@ function renderWeek(){
  const end=new Date(start);
  end.setDate(end.getDate()+6);
 
+ const today=isoToday();
+ const todayDateObj=new Date(today+'T00:00:00');
+ // Is "today" inside this week's start..end range?
+ const isCurrentWeek = todayDateObj >= start && todayDateObj <= end;
+
+ // Display title - if hiding past days in current week, reflect that
  const sameYear=start.getFullYear()===end.getFullYear();
  const startStr=start.toLocaleDateString('en',{month:'short',day:'numeric'});
  const endStr=end.toLocaleDateString('en',sameYear?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'});
- document.getElementById('cal-title').textContent=`${startStr} - ${endStr}`;
+ // For current week, change title to reflect upcoming-only view
+ const titleStr = isCurrentWeek
+ ? `${todayDateObj.toLocaleDateString('en',{month:'short',day:'numeric'})} - ${endStr}`
+ : `${startStr} - ${endStr}`;
+ document.getElementById('cal-title').textContent=titleStr;
 
- const today=isoToday();
  const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
  let html='<div class="cal-week">';
 
@@ -2554,6 +2568,9 @@ function renderWeek(){
  const d=new Date(start);
  d.setDate(d.getDate()+i);
  const iso=isoLocal(d);
+ // Skip past days when viewing current week
+ if(isCurrentWeek && iso < today) continue;
+
  const items=tasksOnDate(iso);
  const isToday=iso===today;
  const lbl=busyLabel(items.length);
@@ -2584,6 +2601,76 @@ function renderWeek(){
  });
  }
 
+ html+=`</div></div>`;
+ }
+ html+='</div>';
+
+ // If on current week, add a small "Show past days" link at top
+ if(isCurrentWeek){
+ const todayDow=new Date().getDay();
+ if(todayDow > 0){
+ html=`<div class="cal-week" style="padding-bottom:0;padding-top:8px"><div style="text-align:center;font-size:12px;color:var(--wmuted);padding:4px 0 4px;cursor:pointer" onclick="showPastWeekDays()">Show ${todayDow} past day${todayDow>1?'s':''} of this week</div></div>`+html.substring('<div class="cal-week">'.length);
+ }
+ }
+ body.innerHTML=html;
+}
+
+let _showPastWeekDays=false;
+function showPastWeekDays(){
+ _showPastWeekDays=true;
+ // Re-render with full week
+ const orig_isoToday=isoToday;
+ // Temporarily lie: pretend "today" is start-of-week so all days render
+ // Simpler: just recompute with a flag
+ renderWeekFull();
+}
+
+function renderWeekFull(){
+ const body=document.getElementById('cal-body');
+ const start=new Date(calCursor);
+ start.setDate(start.getDate()-start.getDay());
+ start.setHours(0,0,0,0);
+ const end=new Date(start);
+ end.setDate(end.getDate()+6);
+ const today=isoToday();
+ const sameYear=start.getFullYear()===end.getFullYear();
+ const startStr=start.toLocaleDateString('en',{month:'short',day:'numeric'});
+ const endStr=end.toLocaleDateString('en',sameYear?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'});
+ document.getElementById('cal-title').textContent=`${startStr} - ${endStr}`;
+ const dayNames=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+ let html='<div class="cal-week">';
+ for(let i=0;i<7;i++){
+ const d=new Date(start);
+ d.setDate(d.getDate()+i);
+ const iso=isoLocal(d);
+ const items=tasksOnDate(iso);
+ const isToday=iso===today;
+ const isPast=iso<today;
+ const lbl=busyLabel(items.length);
+ html+=`<div class="cal-week-day${isToday?' today':''}" ${isPast?'style="opacity:.6"':''}>
+ <div class="cal-week-head">
+ <div class="cal-week-head-left" onclick="this.parentElement.parentElement.querySelector('.cal-week-tasks').style.display=this.parentElement.parentElement.querySelector('.cal-week-tasks').style.display==='none'?'block':'none'">
+ <span class="cal-week-dayname">${dayNames[i]}</span>
+ <span class="cal-week-daynum">${d.getDate()}</span>
+ </div>
+ <div class="cal-week-head-right">
+ <span class="cal-week-summary ${lbl.cls}">${lbl.txt}</span>
+ <button class="cal-week-add" onclick="event.stopPropagation();openQuickAdd('${iso}')" title="Add task">+</button>
+ </div>
+ </div>
+ <div class="cal-week-tasks">`;
+ if(!items.length){
+ html+=`<div class="cal-week-empty">Free - open for plans</div>`;
+ } else {
+ items.forEach(t=>{
+ html+=`<div class="cal-week-task" onclick="openEdit('${t.id}')">
+ <div class="cwt-line ${t.priority||'med'}"></div>
+ <span class="cwt-text">${esc(t.text)}</span>
+ ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'Work':'Personal'}</span>`:''}
+ ${t.state?`<span class="cwt-tag" style="color:var(--wgl)">${esc(t.state)}</span>`:''}
+ </div>`;
+ });
+ }
  html+=`</div></div>`;
  }
  html+='</div>';
