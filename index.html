@@ -1057,8 +1057,7 @@ function saveAsNote(){
 /* --- Voice input via Web Speech API --- */
 let voiceRecognition=null;
 let voiceActive=false;
-let voiceFinalText=''; // accumulates final results across pauses
-let voiceProcessedIdx=0; // highest result index we've already finalized
+let voicePreText=''; // text that was in the input box BEFORE we started recording
 
 function getSpeechRecognition(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1087,41 +1086,33 @@ function startVoice(){
  showToast('Could not start voice');
  return;
  }
- // Configure
  voiceRecognition.continuous=true;
  voiceRecognition.interimResults=true;
  voiceRecognition.lang=navigator.language||'en-IN';
- // Carry forward whatever is already in the input box
- voiceFinalText=inp.value ? inp.value.trim()+' ' : '';
- voiceProcessedIdx=0;
+ // Snapshot what was in the input before recording (we'll append after)
+ voicePreText=inp.value ? inp.value.trim() : '';
 
  voiceRecognition.onstart=()=>{
  voiceActive=true;
  const btn=document.getElementById('mic-btn');
  if(btn) btn.classList.add('recording');
  if(navigator.vibrate) navigator.vibrate(20);
+ // Blur input so the Android keyboard mic doesn't compete with ours
+ try { inp.blur(); } catch(e){}
  };
 
  voiceRecognition.onresult=(event)=>{
- let interim='';
- // Walk all results - finalize any new ones, gather interim from non-final ones
+ // SIMPLE MODEL: rebuild full transcript from ALL results every time
+ // The API guarantees event.results contains the complete cumulative list,
+ // each result is either final or interim. Just walk all of them once.
+ let fullText='';
  for(let i=0; i<event.results.length; i++){
- const result=event.results[i];
- if(result.isFinal){
- // Only append if we haven't seen this index as final yet
- if(i >= voiceProcessedIdx){
- voiceFinalText += result[0].transcript + ' ';
- voiceProcessedIdx = i + 1;
+ fullText += event.results[i][0].transcript;
+ if(event.results[i].isFinal) fullText += ' ';
  }
- } else {
- // Interim - only collect from results we haven't already finalized
- if(i >= voiceProcessedIdx){
- interim += result[0].transcript;
- }
- }
- }
- inp.value=(voiceFinalText+interim).replace(/\s+/g,' ').trim();
- // Resize textarea
+ // Compose: pre-existing text + voice transcript
+ const composed=(voicePreText ? voicePreText+' ' : '') + fullText;
+ inp.value=composed.replace(/\s+/g,' ').trimStart();
  inp.style.height='auto';
  inp.style.height=Math.min(inp.scrollHeight,100)+'px';
  };
@@ -1131,7 +1122,7 @@ function startVoice(){
  if(err==='not-allowed'||err==='service-not-allowed'){
  showToast('Microphone permission denied');
  } else if(err==='no-speech'){
- // Silent - just ignore
+ // ignore
  } else if(err==='aborted'){
  // intentional stop
  } else {
@@ -1144,8 +1135,6 @@ function startVoice(){
  const btn=document.getElementById('mic-btn');
  if(btn) btn.classList.remove('recording');
  voiceRecognition=null;
- voiceProcessedIdx=0;
- // Trim trailing space
  inp.value=inp.value.trim();
  if(inp.value){
  setTimeout(()=>inp.focus(),50);
@@ -1172,7 +1161,6 @@ function stopVoice(){
  if(navigator.vibrate) navigator.vibrate(10);
 }
 
-// Hide mic button if API not available
 (function checkVoiceSupport(){
  if(!getSpeechRecognition()){
  const btn=document.getElementById('mic-btn');
