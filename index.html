@@ -272,7 +272,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 .cal-title:active{opacity:.7}
 
 /* month grid */
-.cal-month{padding:6px;width:100%;box-sizing:border-box;overflow:hidden}
+.cal-month{padding:6px;width:100%;box-sizing:border-box;overflow:hidden;touch-action:pan-y}
 .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
 .cal-dow-cell{text-align:center;font-size:10px;font-weight:600;color:var(--wmuted);padding:6px 0;text-transform:uppercase;letter-spacing:.04em;overflow:hidden}
 .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;width:100%}
@@ -294,7 +294,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 .cal-count{font-size:9px;color:var(--wmuted);font-weight:600;margin-left:1px}
 
 /* week view */
-.cal-week{padding:8px 10px}
+.cal-week{padding:8px 10px;touch-action:pan-y}
 .cal-week-day{background:#fff;border-radius:8px;margin-bottom:8px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)}
 .cal-week-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:#fafafa;border-bottom:1px solid #f0f0f0;cursor:pointer}
 .cal-week-head:active{background:#f0f0f0}
@@ -2678,6 +2678,63 @@ function renderWeekFull(){
 }
 
 loadAll();updateSub();updateNotifLabel();
+
+// Calendar horizontal swipe to navigate (month or week)
+(function setupCalendarSwipe(){
+ const body=document.getElementById('cal-body');
+ if(!body) return;
+ let sx=null, sy=null, sTime=0, swiping=false;
+ const SWIPE_THRESHOLD=50; // min horizontal distance
+ const SWIPE_MAX_TIME=600; // gesture must complete within this many ms
+ const VERTICAL_TOLERANCE=40; // max vertical drift before cancelling
+
+ body.addEventListener('touchstart',e=>{
+ if(e.touches.length!==1) return;
+ sx=e.touches[0].clientX;
+ sy=e.touches[0].clientY;
+ sTime=Date.now();
+ swiping=false;
+ },{passive:true});
+
+ body.addEventListener('touchmove',e=>{
+ if(sx===null||e.touches.length!==1) return;
+ const dx=e.touches[0].clientX-sx;
+ const dy=Math.abs(e.touches[0].clientY-sy);
+ // If vertical movement dominates, abort - let scroll happen
+ if(dy>VERTICAL_TOLERANCE && dy>Math.abs(dx)){sx=null;return;}
+ // Visual feedback: shift the body slightly
+ if(Math.abs(dx)>15 && dy<VERTICAL_TOLERANCE){
+ swiping=true;
+ body.style.transform=`translateX(${dx*0.3}px)`;
+ body.style.transition='none';
+ }
+ },{passive:true});
+
+ body.addEventListener('touchend',e=>{
+ if(sx===null){body.style.transform='';body.style.transition='';return;}
+ const ex=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:sx;
+ const ey=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientY:sy;
+ const dx=ex-sx;
+ const dy=Math.abs(ey-sy);
+ const dt=Date.now()-sTime;
+ sx=null;
+ // Animate snap-back
+ body.style.transition='transform .2s ease-out';
+ body.style.transform='';
+ if(swiping && dt<SWIPE_MAX_TIME && Math.abs(dx)>SWIPE_THRESHOLD && dy<VERTICAL_TOLERANCE){
+ // Trigger nav
+ if(dx<0) calNav(1); // swipe left -> next
+ else calNav(-1); // swipe right -> previous
+ if(navigator.vibrate) navigator.vibrate(15);
+ }
+ swiping=false;
+ setTimeout(()=>{body.style.transition='';},300);
+ },{passive:true});
+
+ body.addEventListener('touchcancel',()=>{
+ sx=null;swiping=false;body.style.transform='';body.style.transition='';
+ },{passive:true});
+})();
 
 // Run notification check on boot (if granted) and every 30 mins
 runNotificationCheck();
