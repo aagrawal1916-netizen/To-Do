@@ -630,24 +630,64 @@ inp.addEventListener('input',function(){this.style.height='auto';this.style.heig
 inp.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}});
 
 /* Chat rendering */
+function fmtChatDate(ts){
+ const d=new Date(ts);
+ const today=new Date(); today.setHours(0,0,0,0);
+ const yest=new Date(today); yest.setDate(yest.getDate()-1);
+ const msgDay=new Date(d); msgDay.setHours(0,0,0,0);
+ if(msgDay.getTime()===today.getTime()) return 'Today';
+ if(msgDay.getTime()===yest.getTime()) return 'Yesterday';
+ const diff=(today-msgDay)/86400000;
+ if(diff>0 && diff<7){
+ return d.toLocaleDateString('en',{weekday:'long'});
+ }
+ if(d.getFullYear()===today.getFullYear()){
+ return d.toLocaleDateString('en',{month:'long',day:'numeric'});
+ }
+ return d.toLocaleDateString('en',{month:'long',day:'numeric',year:'numeric'});
+}
+
+function maybeAddDateDivider(ts){
+ if(!ts || ts<1000000000000) return; // skip if ts unknown/invalid
+ const lastDivTs=chatEl.lastChatDate||0;
+ const newDay=new Date(ts); newDay.setHours(0,0,0,0);
+ if(lastDivTs && new Date(lastDivTs).setHours(0,0,0,0)===newDay.getTime()) return;
+ chatEl.lastChatDate=ts;
+ const div=document.createElement('div');
+ div.className='date-div';
+ div.innerHTML=`<span>${fmtChatDate(ts)}</span>`;
+ chatEl.appendChild(div);
+}
+
 function addMsg(html,side,opts){
  opts=opts||{};
  const out=side==='user';
  const row=document.createElement('div');
  row.className='mrow '+(out?'out':'in');
  const t=opts.time||now();
+ const ts=opts.ts||Date.now();
+ // Insert date divider if day boundary crossed
+ maybeAddDateDivider(ts);
  const meta=`<div class="bbl-meta">${t}${out?`<span class="ticks">${ticks(true)}</span>`:''}</div>`;
  row.innerHTML=`<div class="bbl"><div class="bbl-txt">${out?esc(html):html}</div>${meta}</div>`;
  chatEl.appendChild(row);
  chatEl.scrollTop=chatEl.scrollHeight;
  if(!opts.noLog){
- chatLog.push({html, side: side||'bot', time: t, ts: Date.now()});
+ chatLog.push({html, side: side||'bot', time: t, ts: ts});
  saveChat();
  }
  return row;
 }
 
-function replayChat(){chatLog.forEach(m=>addMsg(m.html, m.side, {time:m.time, noLog:true}));}
+function replayChat(){
+ chatEl.lastChatDate=0; // reset before replay
+ // For older messages without ts, infer date from group of messages
+ chatLog.forEach((m,i)=>{
+ // Use stored ts if present and reasonable; otherwise skip the divider for that message
+ const ts=m.ts && m.ts>1000000000000 ? m.ts : 0;
+ addMsg(m.html, m.side, {time:m.time, ts:ts, noLog:true});
+ });
+}
 
 function addQR(opts){
  const rows=chatEl.querySelectorAll('.mrow.in');
@@ -2560,15 +2600,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden) runNotifi
 
 if(chatLog.length>0){
  replayChat();
- const last=chatLog[chatLog.length-1];
- const hoursSince=(Date.now()-(last.ts||0))/3600000;
- if(hoursSince>3){
- setTimeout(()=>{
- const div=document.createElement('div');div.className='date-div';
- div.innerHTML=`<span>Welcome back . ${new Date().toLocaleDateString('en',{month:'short',day:'numeric'})}</span>`;
- chatEl.appendChild(div);chatEl.scrollTop=chatEl.scrollHeight;
- },200);
- }
 } else {
  setTimeout(()=>{addMsg("Hey!");},300);
  setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
