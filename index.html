@@ -1058,6 +1058,7 @@ function saveAsNote(){
 let voiceRecognition=null;
 let voiceActive=false;
 let voiceFinalText=''; // accumulates final results across pauses
+let voiceProcessedIdx=0; // highest result index we've already finalized
 
 function getSpeechRecognition(){
  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -1092,6 +1093,7 @@ function startVoice(){
  voiceRecognition.lang=navigator.language||'en-IN';
  // Carry forward whatever is already in the input box
  voiceFinalText=inp.value ? inp.value.trim()+' ' : '';
+ voiceProcessedIdx=0;
 
  voiceRecognition.onstart=()=>{
  voiceActive=true;
@@ -1102,12 +1104,20 @@ function startVoice(){
 
  voiceRecognition.onresult=(event)=>{
  let interim='';
- for(let i=event.resultIndex; i<event.results.length; i++){
- const transcript=event.results[i][0].transcript;
- if(event.results[i].isFinal){
- voiceFinalText+=transcript+' ';
+ // Walk all results - finalize any new ones, gather interim from non-final ones
+ for(let i=0; i<event.results.length; i++){
+ const result=event.results[i];
+ if(result.isFinal){
+ // Only append if we haven't seen this index as final yet
+ if(i >= voiceProcessedIdx){
+ voiceFinalText += result[0].transcript + ' ';
+ voiceProcessedIdx = i + 1;
+ }
  } else {
- interim+=transcript;
+ // Interim - only collect from results we haven't already finalized
+ if(i >= voiceProcessedIdx){
+ interim += result[0].transcript;
+ }
  }
  }
  inp.value=(voiceFinalText+interim).replace(/\s+/g,' ').trim();
@@ -1121,9 +1131,9 @@ function startVoice(){
  if(err==='not-allowed'||err==='service-not-allowed'){
  showToast('Microphone permission denied');
  } else if(err==='no-speech'){
- // Silent - just ignore, user might have just paused
+ // Silent - just ignore
  } else if(err==='aborted'){
- // intentional stop, no toast
+ // intentional stop
  } else {
  showToast('Voice error: '+err);
  }
@@ -1134,10 +1144,10 @@ function startVoice(){
  const btn=document.getElementById('mic-btn');
  if(btn) btn.classList.remove('recording');
  voiceRecognition=null;
+ voiceProcessedIdx=0;
  // Trim trailing space
  inp.value=inp.value.trim();
  if(inp.value){
- // Auto-focus so user can edit/send
  setTimeout(()=>inp.focus(),50);
  }
  };
