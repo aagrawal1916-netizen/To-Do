@@ -2697,46 +2697,75 @@ loadAll();updateSub();updateNotifLabel();
 (function setupCalendarSwipe(){
  const body=document.getElementById('cal-body');
  if(!body) return;
- let sx=null, sy=null, sTime=0, swiping=false;
- const SWIPE_THRESHOLD=50;
- const SWIPE_MAX_TIME=600;
- const VERTICAL_TOLERANCE=40;
+ let sx=null, sy=null, sTime=0, swiping=false, pid=null;
+ const SWIPE_THRESHOLD=40; // lowered
+ const SWIPE_MAX_TIME=700;
+ const VERTICAL_TOLERANCE=50;
+ const ENGAGE_DX=10; // start following early
 
- body.addEventListener('touchstart',e=>{
- if(e.touches.length!==1) return;
- sx=e.touches[0].clientX; sy=e.touches[0].clientY;
- sTime=Date.now(); swiping=false;
- },{passive:true});
+ body.addEventListener('pointerdown',e=>{
+ if(e.target.closest('.cal-week-add, .cal-add-btn, button')) return;
+ sx=e.clientX; sy=e.clientY;
+ sTime=Date.now(); swiping=false; pid=e.pointerId;
+ });
 
- body.addEventListener('touchmove',e=>{
- if(sx===null||e.touches.length!==1) return;
- const dx=e.touches[0].clientX-sx;
- const dy=Math.abs(e.touches[0].clientY-sy);
- if(dy>VERTICAL_TOLERANCE && dy>Math.abs(dx)){sx=null;return;}
- if(Math.abs(dx)>15 && dy<VERTICAL_TOLERANCE){
+ body.addEventListener('pointermove',e=>{
+ if(sx===null||e.pointerId!==pid) return;
+ const dx=e.clientX-sx;
+ const dy=Math.abs(e.clientY-sy);
+ if(!swiping){
+ if(dy>VERTICAL_TOLERANCE){sx=null;return;}
+ if(Math.abs(dx)>ENGAGE_DX && Math.abs(dx)>dy){
  swiping=true;
- body.style.transform=`translateX(${dx*0.3}px)`;
  body.style.transition='none';
+ body.style.willChange='transform';
  }
- },{passive:true});
+ }
+ if(swiping){
+ // Full 1:1 follow (was 0.3 - that's why it felt sluggish)
+ body.style.transform=`translateX(${dx}px)`;
+ }
+ });
 
- body.addEventListener('touchend',e=>{
- if(sx===null){body.style.transform='';body.style.transition='';return;}
- const ex=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:sx;
- const ey=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientY:sy;
- const dx=ex-sx; const dy=Math.abs(ey-sy); const dt=Date.now()-sTime;
- sx=null;
- body.style.transition='transform .2s ease-out';
- body.style.transform='';
+ body.addEventListener('pointerup',e=>{
+ if(sx===null||e.pointerId!==pid){return;}
+ const dx=e.clientX-sx; const dy=Math.abs(e.clientY-sy); const dt=Date.now()-sTime;
+ sx=null; pid=null;
+
+ body.style.transition='transform .22s cubic-bezier(0.25,0.46,0.45,0.94)';
+
  if(swiping && dt<SWIPE_MAX_TIME && Math.abs(dx)>SWIPE_THRESHOLD && dy<VERTICAL_TOLERANCE){
- if(dx<0) calNav(1); else calNav(-1);
- if(navigator.vibrate) navigator.vibrate(15);
+ // Animate fully off then nav (feels punchy)
+ const dir=dx<0?-1:1;
+ body.style.transform=`translateX(${dir*window.innerWidth}px)`;
+ setTimeout(()=>{
+ body.style.transition='none';
+ body.style.transform='';
+ if(dir<0) calNav(1); else calNav(-1);
+ if(navigator.vibrate) navigator.vibrate(8);
+ // Slide in from opposite side
+ requestAnimationFrame(()=>{
+ body.style.transform=`translateX(${-dir*window.innerWidth}px)`;
+ requestAnimationFrame(()=>{
+ body.style.transition='transform .22s cubic-bezier(0.25,0.46,0.45,0.94)';
+ body.style.transform='';
+ setTimeout(()=>{body.style.transition='';body.style.willChange='';},250);
+ });
+ });
+ },180);
+ } else {
+ body.style.transform='';
+ setTimeout(()=>{body.style.transition='';body.style.willChange='';},250);
  }
  swiping=false;
- setTimeout(()=>{body.style.transition='';},300);
- },{passive:true});
+ });
 
- body.addEventListener('touchcancel',()=>{sx=null;swiping=false;body.style.transform='';body.style.transition='';},{passive:true});
+ body.addEventListener('pointercancel',()=>{
+ sx=null;swiping=false;pid=null;
+ body.style.transition='transform .2s';
+ body.style.transform='';
+ setTimeout(()=>{body.style.transition='';body.style.willChange='';},220);
+ });
 })();
 
 // --- Long-press a calendar date to quick-add a task ---
@@ -2786,49 +2815,77 @@ loadAll();updateSub();updateNotifLabel();
 // --- Swipe between tabs (chat <-> tasks <-> calendar <-> notes) ---
 (function setupTabSwipe(){
  const TABS=['chat','tasks','cal','notes'];
- const SWIPE_THRESHOLD=80; // higher than calendar so it doesn't conflict
- const SWIPE_MAX_TIME=500;
- const VERTICAL_TOLERANCE=40;
- const EDGE_GUARD=30; // ignore swipes starting from the edge - those are system back
+ const SWIPE_THRESHOLD=50; // lowered from 80
+ const SWIPE_MAX_TIME=700; // longer window
+ const VERTICAL_TOLERANCE=50;
+ const EDGE_GUARD=20;
+ const ENGAGE_DX=12; // start following finger early
 
  ['chat-view','tasks-view','cal-view','notes-view'].forEach(id=>{
  const el=document.getElementById(id);
  if(!el) return;
- let sx=null, sy=null, sTime=0;
+ let sx=null, sy=null, sTime=0, pid=null, engaged=false;
 
- el.addEventListener('touchstart',e=>{
- if(e.touches.length!==1) return;
- const x=e.touches[0].clientX;
- // Ignore edge swipes (system back gesture territory)
- if(x<EDGE_GUARD || x>window.innerWidth-EDGE_GUARD){sx=null;return;}
- sx=x; sy=e.touches[0].clientY;
- sTime=Date.now();
- },{passive:true});
+ el.addEventListener('pointerdown',e=>{
+ if(e.pointerType==='mouse'&&e.button!==0) return;
+ if(e.target.closest('.tc, .nc, .qr, button, input, textarea, select, .cal-cell, .cal-week-task, .cal-week-head, .cal-add-btn, .cal-week-add')) {sx=null;return;}
+ if(e.clientX<EDGE_GUARD||e.clientX>window.innerWidth-EDGE_GUARD){sx=null;return;}
+ sx=e.clientX; sy=e.clientY; sTime=Date.now(); pid=e.pointerId; engaged=false;
+ });
 
- el.addEventListener('touchend',e=>{
- if(sx===null) return;
- const ex=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientX:sx;
- const ey=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientY:sy;
- const dx=ex-sx; const dy=Math.abs(ey-sy); const dt=Date.now()-sTime;
- sx=null;
- // Must be: fast, horizontal-dominant, exceeds threshold
+ el.addEventListener('pointermove',e=>{
+ if(sx===null||e.pointerId!==pid) return;
+ const dx=e.clientX-sx;
+ const dy=Math.abs(e.clientY-sy);
+ if(!engaged){
+ if(dy>VERTICAL_TOLERANCE){sx=null;return;}
+ if(Math.abs(dx)>ENGAGE_DX && Math.abs(dx)>dy){
+ engaged=true;
+ el.style.transition='none';
+ el.style.willChange='transform';
+ }
+ }
+ if(engaged){
+ // Live follow finger with damping at edges
+ const idx=TABS.indexOf(currentTab);
+ let damped=dx;
+ if((dx>0 && idx===0) || (dx<0 && idx===TABS.length-1)){
+ damped=dx*0.3; // resistance at edges
+ }
+ el.style.transform=`translateX(${damped}px)`;
+ }
+ });
+
+ el.addEventListener('pointerup',e=>{
+ if(sx===null||e.pointerId!==pid) return;
+ const dx=e.clientX-sx; const dy=Math.abs(e.clientY-sy); const dt=Date.now()-sTime;
+ sx=null; pid=null;
+ const wasEngaged=engaged;
+ engaged=false;
+
+ // Snap back animation
+ el.style.transition='transform .25s cubic-bezier(0.25,0.46,0.45,0.94)';
+ el.style.transform='';
+ setTimeout(()=>{el.style.transition='';el.style.willChange='';},280);
+
+ if(!wasEngaged) return;
  if(dt>=SWIPE_MAX_TIME) return;
  if(Math.abs(dx)<SWIPE_THRESHOLD) return;
  if(dy>VERTICAL_TOLERANCE) return;
- if(Math.abs(dx)<dy*2) return; // must be clearly horizontal
-
- // Don't switch tabs while a modal is open
  if(document.querySelector('.modal-bg.open')) return;
- // Don't switch tabs during search
  if(document.getElementById('app').classList.contains('search-open')) return;
-
  const idx=TABS.indexOf(currentTab);
  if(idx<0) return;
- if(dx<0 && idx<TABS.length-1){switchTab(TABS[idx+1]);if(navigator.vibrate)navigator.vibrate(10);}
- else if(dx>0 && idx>0){switchTab(TABS[idx-1]);if(navigator.vibrate)navigator.vibrate(10);}
- },{passive:true});
+ if(dx<0 && idx<TABS.length-1){switchTab(TABS[idx+1]);if(navigator.vibrate)navigator.vibrate(8);}
+ else if(dx>0 && idx>0){switchTab(TABS[idx-1]);if(navigator.vibrate)navigator.vibrate(8);}
+ });
 
- el.addEventListener('touchcancel',()=>{sx=null;},{passive:true});
+ el.addEventListener('pointercancel',()=>{
+ sx=null;pid=null;engaged=false;
+ el.style.transition='transform .2s';
+ el.style.transform='';
+ setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);
+ });
  });
 })();
 
@@ -2836,43 +2893,37 @@ loadAll();updateSub();updateNotifLabel();
 (function setupModalSwipeDown(){
  const SWIPE_THRESHOLD=80;
  const SWIPE_MAX_TIME=500;
- const HORIZONTAL_TOLERANCE=60;
 
  document.querySelectorAll('.modal-bg').forEach(bg=>{
  const modal=bg.querySelector('.modal');
  if(!modal) return;
- let sx=null, sy=null, sTime=0, dragging=false;
+ let sy=null, sx=null, sTime=0, dragging=false, pid=null;
 
- modal.addEventListener('touchstart',e=>{
- if(e.touches.length!==1) return;
- // Only respond if touch starts in upper portion (header area), not on form fields
- const target=e.target;
- if(target.matches('input,textarea,select,button')) return;
- sx=e.touches[0].clientX; sy=e.touches[0].clientY;
- sTime=Date.now(); dragging=false;
- },{passive:true});
+ modal.addEventListener('pointerdown',e=>{
+ if(e.target.matches('input,textarea,select,button,option')) return;
+ if(e.target.closest('input,textarea,select,button')) return;
+ sx=e.clientX; sy=e.clientY; sTime=Date.now(); dragging=false; pid=e.pointerId;
+ });
 
- modal.addEventListener('touchmove',e=>{
- if(sy===null||e.touches.length!==1) return;
- const dy=e.touches[0].clientY-sy;
- const dx=Math.abs(e.touches[0].clientX-sx);
+ modal.addEventListener('pointermove',e=>{
+ if(sy===null||e.pointerId!==pid) return;
+ const dy=e.clientY-sy;
+ const dx=Math.abs(e.clientX-sx);
  if(dy>15 && dy>dx){
  dragging=true;
  modal.style.transform=`translateY(${Math.min(dy,300)}px)`;
  modal.style.transition='none';
  modal.style.opacity=String(Math.max(0.5, 1-dy/600));
  }
- },{passive:true});
+ });
 
- modal.addEventListener('touchend',e=>{
- if(sy===null){return;}
- const ey=(e.changedTouches&&e.changedTouches[0])?e.changedTouches[0].clientY:sy;
- const dy=ey-sy;
+ modal.addEventListener('pointerup',e=>{
+ if(sy===null||e.pointerId!==pid) return;
+ const dy=e.clientY-sy;
  const dt=Date.now()-sTime;
- sy=null;
+ sy=null; pid=null;
  modal.style.transition='transform .2s ease-out, opacity .2s ease-out';
  if(dragging && dt<SWIPE_MAX_TIME && dy>SWIPE_THRESHOLD){
- // close the modal
  modal.style.transform='translateY(100%)';
  modal.style.opacity='0';
  setTimeout(()=>{
@@ -2884,12 +2935,12 @@ loadAll();updateSub();updateNotifLabel();
  setTimeout(()=>{modal.style.transition='';},300);
  }
  dragging=false;
- },{passive:true});
+ });
 
- modal.addEventListener('touchcancel',()=>{
- sy=null; dragging=false;
+ modal.addEventListener('pointercancel',()=>{
+ sy=null; pid=null; dragging=false;
  modal.style.transform=''; modal.style.opacity=''; modal.style.transition='';
- },{passive:true});
+ });
  });
 })();
 
@@ -2897,10 +2948,13 @@ loadAll();updateSub();updateNotifLabel();
 (function setupSendLongPress(){
  const sendBtn=document.querySelector('.isend');
  if(!sendBtn) return;
+ // Remove inline onclick - we'll handle it from JS
+ sendBtn.removeAttribute('onclick');
+
  let pressTimer=null;
  let longFired=false;
 
- sendBtn.addEventListener('pointerdown',()=>{
+ sendBtn.addEventListener('pointerdown',(e)=>{
  longFired=false;
  pressTimer=setTimeout(()=>{
  longFired=true;
@@ -2908,23 +2962,15 @@ loadAll();updateSub();updateNotifLabel();
  showQuickSaveMenu();
  },500);
  });
- sendBtn.addEventListener('pointerup',()=>{
- clearTimeout(pressTimer);
- // If long-press fired, prevent the regular click from firing too
- if(longFired){
- // The click handler will run anyway - we need to suppress it
- // We'll check longFired in showQuickSaveMenu's flag
- }
- });
- sendBtn.addEventListener('pointerleave',()=>clearTimeout(pressTimer));
- sendBtn.addEventListener('pointercancel',()=>clearTimeout(pressTimer));
 
- // Replace onclick to check for longFired
- const origSendClick=sendBtn.onclick;
- sendBtn.onclick=(e)=>{
- if(longFired){e.preventDefault();e.stopPropagation();longFired=false;return;}
+ sendBtn.addEventListener('pointerup',(e)=>{
+ clearTimeout(pressTimer);
+ if(longFired){longFired=false;return;}
  sendMsg();
- };
+ });
+
+ sendBtn.addEventListener('pointerleave',()=>{clearTimeout(pressTimer);});
+ sendBtn.addEventListener('pointercancel',()=>{clearTimeout(pressTimer);longFired=false;});
 })();
 
 function showQuickSaveMenu(){
