@@ -1,7 +1,7 @@
 {
-  "name": "TaskDump",
-  "short_name": "TaskDump",
-  "description": "Dump your tasks and notes — TaskDump organises them by due date and category.",
+  "name": "Drop",
+  "short_name": "Drop",
+  "description": "Drop a thought, task, or note - we organise it for you.",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

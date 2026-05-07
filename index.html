@@ -6,15 +6,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="TaskDump"/>
-<meta name="application-name" content="TaskDump"/>
+<meta name="apple-mobile-web-app-title" content="Drop"/>
+<meta name="application-name" content="Drop"/>
 <meta name="theme-color" content="#075e54"/>
-<meta name="description" content="Dump your tasks and notes - TaskDump organises them by due date and category."/>
+<meta name="description" content="Drop a thought, task, or note - we organise it for you."/>
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
 <link rel="apple-touch-icon" href="icon-192.png"/>
-<title>TaskDump</title>
+<title>Drop</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue',Arial,sans-serif}
@@ -336,9 +336,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
  <div class="hdr" id="hdr">
  <div class="hdr-back" onclick="goBack()"><svg width="10" height="17" viewBox="0 0 10 17" fill="none"><path d="M9 1L1 8.5 9 16" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
- <div class="hdr-av">TD</div>
+ <div class="hdr-av">D</div>
  <div class="hdr-info">
- <div class="hdr-name">TaskDump</div>
+ <div class="hdr-name">Drop</div>
  <div class="hdr-sub" id="hdr-sub">tap to manage tasks</div>
  </div>
  <div class="hdr-icons">
@@ -500,7 +500,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="modal-bg" id="bulk-review-modal">
  <div class="modal bulk-review-modal">
  <h3>Review tasks</h3>
- <p id="bulk-review-sub">Check what TaskDump guessed before saving.</p>
+ <p id="bulk-review-sub">Check what Drop guessed before saving.</p>
  <div class="bulk-review-list" id="bulk-review-list"></div>
  <div class="modal-btns">
  <button class="modal-btn secondary" onclick="continueBulkReview()">Ask me</button>
@@ -963,7 +963,7 @@ function handleReply(value,label){
  const sharedShortcuts=(sh.category||sh.due||sh.priority||sh.recur||sh.state);
 
  const p=parseDump(cleanedLabel);
- if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines ");return;}
+ if(!p.length){addMsg("Hmm, I didn't catch anything. Try separating items with commas or new lines.");return;}
 
  const items=p.map(item=>{
  const text=item.text;
@@ -1003,21 +1003,21 @@ function handleReply(value,label){
  <div class="srow">
  <span class="sname">${esc(t.text)}</span>
  <span class="sright">
- ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'':''}${t.priority}</span>`:''}
- ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781"> ${esc(t.state)}</span>`:''}
+ ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority}</span>`:''}
+ ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781">${esc(t.state)}</span>`:''}
  ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
  <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
  </span>
  </div>`).join('');
- const noteSection=definiteNotes.length?`<div style="margin:5px 0;font-size:13px;color:#666"> ${definiteNotes.length} note${definiteNotes.length>1?'s':''} also saved</div>`:'';
- addMsg(` Quick-added <b>${definiteTasks.length}</b>task${definiteTasks.length>1?'s':''}!<div class="scard">${rows}</div>${noteSection}`);
+ const noteSection=definiteNotes.length?`<div style="margin:5px 0;font-size:13px;color:#666">${definiteNotes.length} note${definiteNotes.length>1?'s':''} also saved</div>`:'';
+ addMsg(`Quick-added <b>${definiteTasks.length}</b> task${definiteTasks.length>1?'s':''}!<div class="scard">${rows}</div>${noteSection}`);
  return;
  }
  }
 
  // All-notes case (no tasks at all)
  if(!definiteTasks.length && !unsure.length && definiteNotes.length){
- const list=definiteNotes.map(n=>`<div style="padding:2px 0;color:#333;font-size:14px"> ${esc(n)}</div>`).join('');
+ const list=definiteNotes.map(n=>`<div style="padding:2px 0;color:#333;font-size:14px">- ${esc(n)}</div>`).join('');
  addMsg(`Saved as <b>note${definiteNotes.length>1?'s':''}</b>:<div style="margin:6px 0 4px">${list}</div>`);
  updateSub();return;
  }
@@ -1030,7 +1030,7 @@ function handleReply(value,label){
 
  pending=definiteTasks;
  if(definiteNotes.length){
- const nl=definiteNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px"> ${esc(n)}</div>`).join('');
+ const nl=definiteNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px">- ${esc(n)}</div>`).join('');
  addMsg(`Saved <b>${definiteNotes.length} note${definiteNotes.length>1?'s':''}</b>:<div style="margin:5px 0 2px">${nl}</div>`);
  }
  beginPendingFlow();
@@ -1047,7 +1047,7 @@ function handleReply(value,label){
  }
  step.idx++;
  if(step.idx<step.unsure.length){askClassify();}
- else{updateSub();if(!pending.length){addMsg(' Done! Notes saved.');step=null;return;}beginPendingFlow();}
+ else{updateSub();if(!pending.length){addMsg('Done! Notes saved.');step=null;return;}beginPendingFlow();}
 
  } else if(step.type==='bulk_due'){
  addMsg(label,'user');
@@ -1072,7 +1072,7 @@ function handleReply(value,label){
  addMsg(label,'user');
  if(value==='individual'){
  step={type:'category',idx:0};
- addMsg(`Is <b>${esc(pending[0].text)}</b>work or personal?`);
+ addMsg(`Is <b>${esc(pending[0].text)}</b> work or personal?`);
  setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip >',v:'skip',c:'gr'}]),30);
  } else if(value==='skip'){
  pending.forEach(t=>t.category='');
@@ -1173,7 +1173,7 @@ function handleReply(value,label){
 
 function askClassify(){
  const cur=step.unsure[step.idx];
- addMsg(`Is <b>"${esc(cur)}"</b>a task or just info to remember?`);
+ addMsg(`Is <b>"${esc(cur)}"</b> a task or just info to remember?`);
  setTimeout(()=>addQR([
  {l:' Task',v:'task',c:'g'},
  {l:' Just a note',v:'note',c:'gr'},
@@ -1290,16 +1290,16 @@ function startTaskFlow(){
  let li='';
  Object.keys(byState).forEach(key=>{
  if(key!=='_none'){
- li+=`<div style="margin-top:6px;font-size:12px;color:var(--wgl);font-weight:600"> ${esc(key)}</div>`;
+ li+=`<div style="margin-top:6px;font-size:12px;color:var(--wgl);font-weight:600">${esc(key)}</div>`;
  }
  byState[key].forEach(t=>{
- li+=`<div style="padding:2px 0 2px 8px;color:#333;font-size:14px">. ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`;
+ li+=`<div style="padding:2px 0 2px 8px;color:#333;font-size:14px">- ${esc(t.text)}${t.due?` <span style="color:#888;font-size:12px">(${fmtDate(t.due)})</span>`:''}</div>`;
  });
  });
  const allDated=pending.every(t=>t.due);
  const stateCount=Object.keys(byState).filter(k=>k!=='_none').length;
  const stateMsg=stateCount>0?` (across ${stateCount} state${stateCount>1?'s':''})`:'';
- addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b>${stateMsg} :<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for all of them?'}`);
+ addMsg(`Got <b>${pending.length} task${pending.length>1?'s':''}</b>${stateMsg}:<div style="margin:7px 0 3px">${li}</div>${allDated?'All have dates! Categories?':'Due date for all of them?'}`);
  if(allDated){
  step={type:'bulk_cat'};
  setTimeout(()=>addQR([{l:'Work - all',v:'work',c:'b'},{l:'Personal - all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip >',v:'skip',c:'gr'}]),30);
@@ -1311,8 +1311,8 @@ function startTaskFlow(){
 
 function afterBulkDue(){
  step={type:'bulk_cat'};
- addMsg('Are these <b>Work</b>or <b>Personal</b>?');
- setTimeout(()=>addQR([{l:'Work - all',v:'work',c:'b'},{l:'Personal - all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip >',v:'skip',c:'gr'}]),30);
+ addMsg('Are these <b>Work</b> or <b>Personal</b>?');
+ setTimeout(()=>addQR([{l:'Work - all',v:'work',c:'b'},{l:'Personal - all',v:'personal',c:'p'},{l:'Set one by one',v:'individual',c:'gr'},{l:'Skip',v:'skip',c:'gr'}]),30);
 }
 
 function stateOpts(includeKeep){
@@ -1354,7 +1354,7 @@ function askBulkPriority(){
 }
 
 function askIndivCat(i){
- addMsg(`Is <b>${esc(pending[i].text)}</b>work or personal?`);
+ addMsg(`Is <b>${esc(pending[i].text)}</b> work or personal?`);
  setTimeout(()=>addQR([{l:'Work',v:'work',c:'b'},{l:'Personal',v:'personal',c:'p'},{l:'Skip >',v:'skip',c:'gr'}]),30);
 }
 
@@ -1385,17 +1385,17 @@ function finishFlow(){
  <div class="srow">
  <span class="sname">${esc(t.text)}</span>
  <span class="sright">
- ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority==='high'?'':''}${t.priority}</span>`:''}
- ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781"> ${esc(t.state)}</span>`:''}
+ ${t.priority&&t.priority!=='med'?`<span class="ppill ${t.priority}">${t.priority}</span>`:''}
+ ${t.state?`<span class="cpill" style="background:#f0f2f5;color:#667781">${esc(t.state)}</span>`:''}
  ${t.category?`<span class="cpill ${t.category}">${t.category}</span>`:''}
  <span class="dpill">${t.due?fmtDate(t.due):'No date'}</span>
  </span>
  </div>`).join('');
- addMsg(` Added <b>${pending.length}</b>task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
+ addMsg(`Added <b>${pending.length}</b> task${pending.length>1?'s':''}!<div class="scard">${rows}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('tasks');rmQR()">View tasks</div><div class="qr gr" onclick="moreDump()">Add more</div></div>`);
  pending=[];step=null;
 }
 
-function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever ");}
+function moreDump(){rmQR();step=null;addMsg("Sure! Drop more tasks whenever.");}
 
 /* Tabs */
 function goBack(){
@@ -1683,6 +1683,8 @@ function createTaskCard(t){
  }
 
  const finishGesture=(e)=>{
+ let needsRefresh=false;
+
  if(mode==='swipe'){
  wrap.classList.remove('swiping','swipe-left');
  if(currentX>SWIPE_TRIGGER){
@@ -1707,7 +1709,7 @@ function createTaskCard(t){
  }
 
  if(mode==='drag'){
- // Find drop target group
+ // Find drop target group BEFORE exitDragMode clears it
  const targetGrp=document.querySelector('.tgrp.drop-target');
  if(targetGrp){
  const newDate=targetGrp.dataset.dateKey;
@@ -1716,34 +1718,35 @@ function createTaskCard(t){
  saveAll();
  if(navigator.vibrate) navigator.vibrate(20);
  const niceName=newDate==='_nd'?'No date':fmtDate(newDate);
- showToast(`Moved to ${niceName}`,()=>{t.due=oldDate;saveAll();refreshCurrentView();});
  actionFired=true;
+ needsRefresh=true;
+ exitDragMode();
+ refreshCurrentView();
+ showToast(`Moved to ${niceName}`,()=>{t.due=oldDate;saveAll();refreshCurrentView();});
  } else {
  // Long-pressed but didn't drag anywhere - treat as edit shortcut
- const dx=Math.abs((e&&e.clientX!==undefined?e.clientX-startX:0));
- const dy=Math.abs((e&&e.clientY!==undefined?e.clientY-startY:0));
+ const dx=e&&typeof e.clientX==='number'?Math.abs(e.clientX-startX):0;
+ const dy=e&&typeof e.clientY==='number'?Math.abs(e.clientY-startY):0;
  if(dx<10 && dy<10){
  actionFired=true;
- setTimeout(()=>openEdit(t.id),50);
- }
- }
  exitDragMode();
- if(actionFired && document.querySelector('.tgrp.drop-target')) refreshCurrentView();
- if(actionFired && !document.querySelector('.tgrp.drop-target')){
-   // already handled (edit case) - no need to refresh
+ setTimeout(()=>openEdit(t.id),50);
+ } else {
+ // Drag was active but released over non-target - just snap back
+ exitDragMode();
+ }
  }
  }
 
- mode='idle'; startX=null; currentX=0;
+ mode='idle'; startX=null; startY=null; currentX=0;
  };
 
  c.addEventListener('pointerup',e=>{
  clearTimeout(pressTimer);
- const wasDrag=mode==='drag';
- const wasSwipe=mode==='swipe';
+ const finalMode=mode; // capture before finishGesture resets it
  finishGesture(e);
- // Only treat as tap if no movement happened and timer didn't fire
- if(!wasDrag && !wasSwipe && !actionFired){
+ // Tap = no swipe, no drag, no scroll-cancel, no long-press fired
+ if(finalMode==='idle' && !actionFired){
  toggleDone(t.id);
  }
  });
@@ -1755,13 +1758,12 @@ function createTaskCard(t){
  c.style.transform='';
  wrap.classList.remove('swiping','swipe-left');
  }
- mode='idle'; startX=null; currentX=0;
+ mode='idle'; startX=null; startY=null; currentX=0;
  });
 
  c.addEventListener('pointerleave',()=>{
- clearTimeout(pressTimer);
- // Don't auto-finish on leave during drag - the finger has moved off
- // pointerup will fire eventually
+ // Don't clear long-press timer here - finger holding still on card
+ // shouldn't trigger pointerleave anyway. Only act on actual cancel/up.
  });
 
  return wrap;
@@ -2024,7 +2026,7 @@ function exportData(){
  const url=URL.createObjectURL(blob);
  const a=document.createElement('a');
  a.href=url;
- a.download=`taskdump-backup-${new Date().toISOString().split('T')[0]}.json`;
+ a.download=`drop-backup-${new Date().toISOString().split('T')[0]}.json`;
  document.body.appendChild(a);a.click();document.body.removeChild(a);
  URL.revokeObjectURL(url);
  showToast('Backup downloaded');
@@ -2128,10 +2130,10 @@ function runNotificationCheck(){
  const todayKey='today_'+today;
  if(dueToday.length&&!notified[todayKey]){
  try{
- new Notification('TaskDump',{
+ new Notification('Drop',{
  body: dueToday.length===1?`Due today: ${dueToday[0].text}`:`${dueToday.length} tasks due today`,
  icon:'icon-192.png',
- tag:'taskdump-today',
+ tag:'drop-today',
  badge:'icon-192.png',
  });
  notified[todayKey]=Date.now();
@@ -2142,10 +2144,10 @@ function runNotificationCheck(){
  const odKey='overdue_'+today;
  if(!notified[odKey]){
  try{
- new Notification('TaskDump',{
+ new Notification('Drop',{
  body:`${overdue.length} overdue task${overdue.length>1?'s':''}`,
  icon:'icon-192.png',
- tag:'taskdump-overdue',
+ tag:'drop-overdue',
  });
  notified[odKey]=Date.now();
  }catch(e){}
@@ -2399,13 +2401,14 @@ function renderMonth(){
  else panel+=`<span style="color:var(--wmuted);font-size:12px">${items.length} task${items.length>1?'s':''}</span>`;
  panel+=`</div>`;
  if(!items.length){
- panel+=`<div style="font-size:13px;color:var(--wmuted);text-align:center;padding:6px 0">No tasks scheduled - good time to slot in a meeting </div>`;
+ panel+=`<div style="font-size:13px;color:var(--wmuted);text-align:center;padding:6px 0">No tasks scheduled - good time to slot in a meeting</div>`;
  } else {
  items.forEach(t=>{
  panel+=`<div class="cal-week-task" data-id="${t.id}" onclick="openEdit('${t.id}')">
  <div class="cwt-line ${t.priority||'med'}"></div>
  <span class="cwt-text">${esc(t.text)}</span>
- ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'':''}</span>`:''}
+ ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'Work':'Personal'}</span>`:''}
+ ${t.state?`<span class="cwt-tag" style="color:var(--wgl)">${esc(t.state)}</span>`:''}
  </div>`;
  });
  }
@@ -2457,8 +2460,9 @@ function renderWeek(){
  const end=new Date(start);
  end.setDate(end.getDate()+6);
 
+ const sameYear=start.getFullYear()===end.getFullYear();
  const startStr=start.toLocaleDateString('en',{month:'short',day:'numeric'});
- const endStr=end.toLocaleDateString('en',{month:'short',day:'numeric',year:start.getFullYear()!==end.getFullYear()||start.getMonth()!==end.getMonth()?undefined:undefined});
+ const endStr=end.toLocaleDateString('en',sameYear?{month:'short',day:'numeric'}:{month:'short',day:'numeric',year:'numeric'});
  document.getElementById('cal-title').textContent=`${startStr} - ${endStr}`;
 
  const today=isoToday();
@@ -2493,7 +2497,8 @@ function renderWeek(){
  html+=`<div class="cal-week-task" onclick="openEdit('${t.id}')">
  <div class="cwt-line ${t.priority||'med'}"></div>
  <span class="cwt-text">${esc(t.text)}</span>
- ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'':''}</span>`:''}
+ ${t.category?`<span class="cwt-tag ${t.category}">${t.category==='work'?'Work':'Personal'}</span>`:''}
+ ${t.state?`<span class="cwt-tag" style="color:var(--wgl)">${esc(t.state)}</span>`:''}
  </div>`;
  });
  }
@@ -2524,9 +2529,9 @@ if(chatLog.length>0){
  },200);
  }
 } else {
- setTimeout(()=>{addMsg("Hey! ");},300);
- setTimeout(()=>{addMsg("I'm <b>TaskDump</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\" ");},1000);
- setTimeout(()=>{addMsg(" <b>Quick shortcuts:</b>add <code>!t</code>for today, <code>!w</code>for work, <code>!h</code>for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
+ setTimeout(()=>{addMsg("Hey!");},300);
+ setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
+ setTimeout(()=>{addMsg("<b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
  setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
 }
 </script>
