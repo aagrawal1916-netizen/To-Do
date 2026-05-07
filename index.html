@@ -164,6 +164,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .iwrap textarea::-webkit-scrollbar{display:none}
 .isend{width:46px;height:46px;border-radius:50%;background:var(--wteal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.2)}
 .isend:active{opacity:.85;transform:scale(.96)}
+.inote{width:42px;height:42px;border-radius:50%;background:#f59e0b;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
+.inote:active{opacity:.85;transform:scale(.96)}
 
 /* modals */
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.55);display:none;align-items:flex-end;justify-content:center;z-index:200}
@@ -415,6 +417,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <span class="iemoji"></span>
  <textarea id="msg-input" rows="1" placeholder="Message"></textarea>
  </div>
+ <button class="inote" onclick="saveAsNote()" title="Save as note" aria-label="Save as note">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
+ </button>
  <button class="isend" onclick="sendMsg()">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
  </button>
@@ -951,6 +956,42 @@ function sendMsg(){
  if(!t)return;
  inp.value='';inp.style.height='auto';
  rmQR();handleReply(t,t);
+}
+
+function saveAsNote(){
+ const t=inp.value.trim();
+ if(!t){
+ // Empty input - hint to user
+ showToast('Type something first to save as note');
+ return;
+ }
+ // If user is mid-flow (answering questions), don't disrupt - just bail
+ if(step!==null){
+ showToast('Finish current task flow first');
+ return;
+ }
+ // Show user message in chat
+ addMsg(t,'user');
+ // Split on newlines/commas/semicolons so multiple notes can be saved at once
+ const parts=t.split(/[\n,;]+/).map(s=>s.trim()).filter(s=>s.length>0);
+ const newNotes=[];
+ parts.forEach(text=>{
+ const note={text, id:uid(), at:new Date().toISOString()};
+ notes.push(note);
+ newNotes.push(note);
+ });
+ saveAll();updateSub();
+ inp.value='';inp.style.height='auto';
+ // Confirmation message
+ const list=newNotes.map(n=>`<div style="padding:1px 0;color:#666;font-size:13px">- ${esc(n.text)}</div>`).join('');
+ addMsg(`Saved <b>${newNotes.length} note${newNotes.length>1?'s':''}</b>:<div style="margin:5px 0 2px">${list}</div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('notes');rmQR()">View notes</div></div>`);
+ // Undo: remove the just-added notes
+ const ids=newNotes.map(n=>n.id);
+ showToast(`Saved as note${newNotes.length>1?'s':''}`,()=>{
+ notes=notes.filter(n=>!ids.includes(n.id));
+ saveAll();updateSub();
+ if(currentTab==='notes') renderNotes();
+ });
 }
 
 function handleReply(value,label){
@@ -2533,6 +2574,7 @@ if(chatLog.length>0){
  setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
  setTimeout(()=>{addMsg("<b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
  setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
+ setTimeout(()=>{addMsg("Tip: tap the <b>yellow note button</b> next to send to save anything as a note (without it being treated as a task).");},4000);
 }
 </script>
 </body>
