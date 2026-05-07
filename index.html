@@ -156,16 +156,20 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .ncard-del:active{color:#ef4444}
 
 /* input */
-.ibar{display:flex;align-items:flex-end;gap:7px;padding:6px 8px 10px;background:var(--wbg);flex-shrink:0}
-.iwrap{flex:1;background:#fff;border-radius:24px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.ibar{display:flex;align-items:flex-end;gap:5px;padding:6px 6px 10px;background:var(--wbg);flex-shrink:0}
+.iwrap{flex:1;min-width:0;background:#fff;border-radius:24px;padding:8px 12px;display:flex;align-items:center;gap:8px;box-shadow:0 1px 2px rgba(0,0,0,.1)}
 .iemoji{font-size:22px;cursor:pointer;flex-shrink:0;line-height:1;color:#8696a0}
 .iwrap textarea{flex:1;border:none;outline:none;resize:none;font-family:inherit;font-size:15px;color:#111;line-height:1.4;max-height:100px;overflow-y:auto;background:transparent}
 .iwrap textarea::placeholder{color:#8696a0}
 .iwrap textarea::-webkit-scrollbar{display:none}
-.isend{width:46px;height:46px;border-radius:50%;background:var(--wteal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.2)}
+.isend{width:44px;height:44px;border-radius:50%;background:var(--wteal);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 5px rgba(0,0,0,.2);padding:0}
 .isend:active{opacity:.85;transform:scale(.96)}
-.inote{width:42px;height:42px;border-radius:50%;background:#f59e0b;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
+.inote{width:40px;height:40px;border-radius:50%;background:#f59e0b;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
 .inote:active{opacity:.85;transform:scale(.96)}
+.imic{width:40px;height:40px;border-radius:50%;background:#3b82f6;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0;transition:background .15s}
+.imic:active{opacity:.85;transform:scale(.96)}
+.imic.recording{background:#ef4444;animation:micPulse 1.2s ease-in-out infinite}
+@keyframes micPulse{0%,100%{box-shadow:0 2px 4px rgba(0,0,0,.15),0 0 0 0 rgba(239,68,68,.7)}50%{box-shadow:0 2px 4px rgba(0,0,0,.15),0 0 0 10px rgba(239,68,68,0)}}
 
 /* Quick-save bottom sheet (long-press send) */
 #quick-save-sheet{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
@@ -428,9 +432,11 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
  <div class="ibar" id="input-bar">
  <div class="iwrap">
- <span class="iemoji"></span>
  <textarea id="msg-input" rows="1" placeholder="Message"></textarea>
  </div>
+ <button class="imic" id="mic-btn" onclick="toggleVoice()" title="Voice input" aria-label="Voice input">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
+ </button>
  <button class="inote" onclick="saveAsNote()" title="Save as note" aria-label="Save as note">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
  </button>
@@ -1047,6 +1053,122 @@ function saveAsNote(){
  if(currentTab==='notes') renderNotes();
  });
 }
+
+/* --- Voice input via Web Speech API --- */
+let voiceRecognition=null;
+let voiceActive=false;
+let voiceFinalText=''; // accumulates final results across pauses
+
+function getSpeechRecognition(){
+ const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+ return SR;
+}
+
+function toggleVoice(){
+ const SR=getSpeechRecognition();
+ if(!SR){
+ showToast('Voice not supported on this browser');
+ return;
+ }
+ if(voiceActive){
+ stopVoice();
+ } else {
+ startVoice();
+ }
+}
+
+function startVoice(){
+ const SR=getSpeechRecognition();
+ if(!SR) return;
+ try {
+ voiceRecognition=new SR();
+ } catch(e){
+ showToast('Could not start voice');
+ return;
+ }
+ // Configure
+ voiceRecognition.continuous=true;
+ voiceRecognition.interimResults=true;
+ voiceRecognition.lang=navigator.language||'en-IN';
+ // Carry forward whatever is already in the input box
+ voiceFinalText=inp.value ? inp.value.trim()+' ' : '';
+
+ voiceRecognition.onstart=()=>{
+ voiceActive=true;
+ const btn=document.getElementById('mic-btn');
+ if(btn) btn.classList.add('recording');
+ if(navigator.vibrate) navigator.vibrate(20);
+ };
+
+ voiceRecognition.onresult=(event)=>{
+ let interim='';
+ for(let i=event.resultIndex; i<event.results.length; i++){
+ const transcript=event.results[i][0].transcript;
+ if(event.results[i].isFinal){
+ voiceFinalText+=transcript+' ';
+ } else {
+ interim+=transcript;
+ }
+ }
+ inp.value=(voiceFinalText+interim).replace(/\s+/g,' ').trim();
+ // Resize textarea
+ inp.style.height='auto';
+ inp.style.height=Math.min(inp.scrollHeight,100)+'px';
+ };
+
+ voiceRecognition.onerror=(event)=>{
+ const err=event.error;
+ if(err==='not-allowed'||err==='service-not-allowed'){
+ showToast('Microphone permission denied');
+ } else if(err==='no-speech'){
+ // Silent - just ignore, user might have just paused
+ } else if(err==='aborted'){
+ // intentional stop, no toast
+ } else {
+ showToast('Voice error: '+err);
+ }
+ };
+
+ voiceRecognition.onend=()=>{
+ voiceActive=false;
+ const btn=document.getElementById('mic-btn');
+ if(btn) btn.classList.remove('recording');
+ voiceRecognition=null;
+ // Trim trailing space
+ inp.value=inp.value.trim();
+ if(inp.value){
+ // Auto-focus so user can edit/send
+ setTimeout(()=>inp.focus(),50);
+ }
+ };
+
+ try {
+ voiceRecognition.start();
+ } catch(e){
+ showToast('Could not start - try again');
+ voiceActive=false;
+ const btn=document.getElementById('mic-btn');
+ if(btn) btn.classList.remove('recording');
+ }
+}
+
+function stopVoice(){
+ if(voiceRecognition){
+ try { voiceRecognition.stop(); } catch(e){}
+ }
+ voiceActive=false;
+ const btn=document.getElementById('mic-btn');
+ if(btn) btn.classList.remove('recording');
+ if(navigator.vibrate) navigator.vibrate(10);
+}
+
+// Hide mic button if API not available
+(function checkVoiceSupport(){
+ if(!getSpeechRecognition()){
+ const btn=document.getElementById('mic-btn');
+ if(btn) btn.style.display='none';
+ }
+})();
 
 function handleReply(value,label){
  if(step===null){
@@ -2812,83 +2934,6 @@ loadAll();updateSub();updateNotifLabel();
  body.addEventListener('pointercancel',()=>{clearTimeout(pressTimer);pressTimer=null;pressTarget=null;});
 })();
 
-// --- Swipe between tabs (chat <-> tasks <-> calendar <-> notes) ---
-(function setupTabSwipe(){
- const TABS=['chat','tasks','cal','notes'];
- const SWIPE_THRESHOLD=50; // lowered from 80
- const SWIPE_MAX_TIME=700; // longer window
- const VERTICAL_TOLERANCE=50;
- const EDGE_GUARD=20;
- const ENGAGE_DX=12; // start following finger early
-
- ['chat-view','tasks-view','cal-view','notes-view'].forEach(id=>{
- const el=document.getElementById(id);
- if(!el) return;
- let sx=null, sy=null, sTime=0, pid=null, engaged=false;
-
- el.addEventListener('pointerdown',e=>{
- if(e.pointerType==='mouse'&&e.button!==0) return;
- if(e.target.closest('.tc, .nc, .qr, button, input, textarea, select, .cal-cell, .cal-week-task, .cal-week-head, .cal-add-btn, .cal-week-add')) {sx=null;return;}
- if(e.clientX<EDGE_GUARD||e.clientX>window.innerWidth-EDGE_GUARD){sx=null;return;}
- sx=e.clientX; sy=e.clientY; sTime=Date.now(); pid=e.pointerId; engaged=false;
- });
-
- el.addEventListener('pointermove',e=>{
- if(sx===null||e.pointerId!==pid) return;
- const dx=e.clientX-sx;
- const dy=Math.abs(e.clientY-sy);
- if(!engaged){
- if(dy>VERTICAL_TOLERANCE){sx=null;return;}
- if(Math.abs(dx)>ENGAGE_DX && Math.abs(dx)>dy){
- engaged=true;
- el.style.transition='none';
- el.style.willChange='transform';
- }
- }
- if(engaged){
- // Live follow finger with damping at edges
- const idx=TABS.indexOf(currentTab);
- let damped=dx;
- if((dx>0 && idx===0) || (dx<0 && idx===TABS.length-1)){
- damped=dx*0.3; // resistance at edges
- }
- el.style.transform=`translateX(${damped}px)`;
- }
- });
-
- el.addEventListener('pointerup',e=>{
- if(sx===null||e.pointerId!==pid) return;
- const dx=e.clientX-sx; const dy=Math.abs(e.clientY-sy); const dt=Date.now()-sTime;
- sx=null; pid=null;
- const wasEngaged=engaged;
- engaged=false;
-
- // Snap back animation
- el.style.transition='transform .25s cubic-bezier(0.25,0.46,0.45,0.94)';
- el.style.transform='';
- setTimeout(()=>{el.style.transition='';el.style.willChange='';},280);
-
- if(!wasEngaged) return;
- if(dt>=SWIPE_MAX_TIME) return;
- if(Math.abs(dx)<SWIPE_THRESHOLD) return;
- if(dy>VERTICAL_TOLERANCE) return;
- if(document.querySelector('.modal-bg.open')) return;
- if(document.getElementById('app').classList.contains('search-open')) return;
- const idx=TABS.indexOf(currentTab);
- if(idx<0) return;
- if(dx<0 && idx<TABS.length-1){switchTab(TABS[idx+1]);if(navigator.vibrate)navigator.vibrate(8);}
- else if(dx>0 && idx>0){switchTab(TABS[idx-1]);if(navigator.vibrate)navigator.vibrate(8);}
- });
-
- el.addEventListener('pointercancel',()=>{
- sx=null;pid=null;engaged=false;
- el.style.transition='transform .2s';
- el.style.transform='';
- setTimeout(()=>{el.style.transition='';el.style.willChange='';},220);
- });
- });
-})();
-
 // --- Swipe down on modal to close ---
 (function setupModalSwipeDown(){
  const SWIPE_THRESHOLD=80;
@@ -3059,7 +3104,7 @@ if(chatLog.length>0){
  setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
  setTimeout(()=>{addMsg("<b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
  setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
- setTimeout(()=>{addMsg("Tip: tap the <b>yellow note button</b> next to send to save anything as a note (without it being treated as a task).");},4000);
+ setTimeout(()=>{addMsg("Tip: tap the <b>blue mic button</b> to dictate, the <b>yellow note button</b> to save as a note, or long-press the green send button for quick options.");},4000);
 }
 </script>
 </body>
