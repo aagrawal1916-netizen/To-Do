@@ -55,9 +55,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .menu-divider{height:1px;background:#eee;margin:4px 0}
 
 /* tabs */
-.tabs{display:flex;background:var(--wg);flex-shrink:0;border-top:1px solid rgba(255,255,255,.15)}
-.tab{flex:1;text-align:center;font-size:13px;font-weight:600;color:rgba(255,255,255,.6);padding:10px 0;cursor:pointer;border-bottom:3px solid transparent;letter-spacing:.05em}
-.tab.active{color:#fff;border-bottom-color:#fff}
+.tabs{display:flex;gap:0;background:var(--wg);flex-shrink:0;border-top:1px solid rgba(255,255,255,.15);justify-content:space-around;align-items:center;padding:6px 0}
+.tab-item{display:flex;flex-direction:column;align-items:center;justify-content:center;flex:1;gap:2px;padding:8px 4px;cursor:pointer;color:rgba(255,255,255,.55);transition:color .2s,background .15s;border-bottom:3px solid transparent;position:relative}
+.tab-item:active{background:rgba(255,255,255,.05)}
+.tab-item.active{color:#fff;border-bottom-color:#fff}
+.tab-icon{width:22px;height:22px;display:block;stroke-linecap:round;stroke-linejoin:round}
+.tab-label{font-size:11px;font-weight:600;letter-spacing:.03em;white-space:nowrap}
+@media(max-width:360px){.tab-label{display:none}}
 
 /* chat */
 .chat-bg{
@@ -421,12 +425,30 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
 
  <div class="tabs" id="tabs">
- <div class="tab active" id="tab-chat" onclick="switchTab('chat')">CHAT</div>
- <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">TASKS</div>
- <div class="tab" id="tab-cal" onclick="switchTab('cal')">CALENDAR</div>
- <div class="tab" id="tab-notes" onclick="switchTab('notes')">NOTES</div>
- <div class="tab" id="tab-cards" onclick="switchTab('cards')">CARDS</div>
- <div class="tab" id="tab-deals" onclick="switchTab('deals')">DEALS</div>
+ <div class="tab-item active" id="tab-chat" onclick="switchTab('chat')" title="Chat">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+ <span class="tab-label">Chat</span>
+ </div>
+ <div class="tab-item" id="tab-tasks" onclick="switchTab('tasks')" title="Tasks">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+ <span class="tab-label">Tasks</span>
+ </div>
+ <div class="tab-item" id="tab-cal" onclick="switchTab('cal')" title="Calendar">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+ <span class="tab-label">Cal</span>
+ </div>
+ <div class="tab-item" id="tab-notes" onclick="switchTab('notes')" title="Notes">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+ <span class="tab-label">Notes</span>
+ </div>
+ <div class="tab-item" id="tab-cards" onclick="switchTab('cards')" title="Cards">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+ <span class="tab-label">Cards</span>
+ </div>
+ <div class="tab-item" id="tab-deals" onclick="switchTab('deals')" title="Deals">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="10"/></svg>
+ <span class="tab-label">Deals</span>
+ </div>
  </div>
 
  <div class="chat-bg" id="chat-view"></div>
@@ -467,6 +489,25 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
  <div class="tv" id="deals-view" style="display:none">
  <div style="padding:12px 14px">
+ <!-- Dashboard -->
+ <div id="deals-dashboard" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px">
+ <div style="background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)">
+ <div style="font-size:12px;opacity:.9;margin-bottom:4px">Pipeline</div>
+ <div style="font-size:20px;font-weight:700" id="dashboard-total">₹0</div>
+ </div>
+ <div style="background:linear-gradient(135deg,#f093fb 0%,#f5576c 100%);color:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)">
+ <div style="font-size:12px;opacity:.9;margin-bottom:4px">Total Deals</div>
+ <div style="font-size:20px;font-weight:700" id="dashboard-count">0</div>
+ </div>
+ <div style="background:linear-gradient(135deg,#4facfe 0%,#00f2fe 100%);color:#fff;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)">
+ <div style="font-size:12px;opacity:.9;margin-bottom:4px">Won</div>
+ <div style="font-size:20px;font-weight:700" id="dashboard-won">0</div>
+ </div>
+ <div style="background:linear-gradient(135deg,#fa709a 0%,#fee140 100%);color:#333;padding:14px;border-radius:8px;box-shadow:0 2px 6px rgba(0,0,0,.1)">
+ <div style="font-size:12px;opacity:.9;margin-bottom:4px">Pipeline ₹</div>
+ <div style="font-size:20px;font-weight:700" id="dashboard-pipeline">₹0</div>
+ </div>
+ </div>
  <div style="display:flex;gap:10px;margin-bottom:14px">
  <select id="deals-filter-stage" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
  <option value="">All stages</option>
@@ -603,6 +644,10 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div>
  <label>Value (₹)</label>
  <input type="number" id="deal-value" placeholder="100000" min="0"/>
+ </div>
+ <div>
+ <label>Quantity / Units</label>
+ <input type="number" id="deal-quantity" placeholder="e.g. 50 units" min="0" step="0.01"/>
  </div>
  <div>
  <label>Stage</label>
@@ -1652,12 +1697,22 @@ function renderDeals(){
  if(stageFilter) filtered=filtered.filter(d=>d.stage===stageFilter);
  if(stateFilter) filtered=filtered.filter(d=>d.state===stateFilter);
  
+ // Dashboard metrics (unfiltered, show overall picture)
+ const totalPipeline=deals.filter(d=>d.stage!=='won'&&d.stage!=='lost').reduce((sum,d)=>sum+(d.value||0),0);
+ const totalDeals=deals.length;
+ const wonDeals=deals.filter(d=>d.stage==='won').length;
+ const wonValue=deals.filter(d=>d.stage==='won').reduce((sum,d)=>sum+(d.value||0),0);
+ 
+ document.getElementById('dashboard-total').textContent='₹'+(totalPipeline/100000).toFixed(1)+'L';
+ document.getElementById('dashboard-count').textContent=totalDeals;
+ document.getElementById('dashboard-won').textContent=wonDeals;
+ document.getElementById('dashboard-pipeline').textContent='₹'+(wonValue/100000).toFixed(1)+'L';
+ 
  if(!filtered.length){
  list.innerHTML=`<div class="tempty" style="margin-top:20px">No deals yet <br><span style="font-size:13px">Tap + to add a deal.</span></div>`;
  return;
  }
  
- // Sort by created date (newest first)
  const sorted=[...filtered].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
  
  sorted.forEach(d=>{
@@ -1670,6 +1725,7 @@ function renderDeals(){
  const stageBadge=`<span style="display:inline-block;background:${stageColor};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600">${STAGE_LABELS[d.stage]||d.stage}</span>`;
  
  const valueTxt = d.value ? `₹${(d.value/100000).toFixed(1)}L` : '-';
+ const qtyTxt = d.quantity ? ` (${d.quantity} units)` : '';
  
  card.innerHTML=`
  <div style="display:flex;justify-content:space-between;align-items:start">
@@ -1678,7 +1734,7 @@ function renderDeals(){
  <div style="color:#666;font-size:13px">${esc(d.company||'')}</div>
  </div>
  <div style="text-align:right;flex-shrink:0">
- <div style="font-weight:600;color:#1f2937;font-size:14px">${valueTxt}</div>
+ <div style="font-weight:600;color:#1f2937;font-size:14px">${valueTxt}${qtyTxt}</div>
  <div style="color:#999;font-size:12px">${d.state||''}</div>
  </div>
  </div>
@@ -1699,6 +1755,7 @@ function openAddDealModal(){
  document.getElementById('deal-contact').value='';
  document.getElementById('deal-state').value='';
  document.getElementById('deal-value').value='';
+ document.getElementById('deal-quantity').value='';
  document.getElementById('deal-stage').value='lead';
  document.getElementById('deal-notes').value='';
  document.getElementById('deal-modal').classList.add('open');
@@ -1716,6 +1773,7 @@ function openEditDeal(id){
  document.getElementById('deal-contact').value=d.contact||'';
  document.getElementById('deal-state').value=d.state||'';
  document.getElementById('deal-value').value=d.value||'';
+ document.getElementById('deal-quantity').value=d.quantity||'';
  document.getElementById('deal-stage').value=d.stage||'lead';
  document.getElementById('deal-notes').value=d.notes||'';
  document.getElementById('deal-modal').classList.add('open');
@@ -1737,6 +1795,7 @@ function saveDeal(){
  contact: document.getElementById('deal-contact').value.trim(),
  state: document.getElementById('deal-state').value,
  value: parseInt(document.getElementById('deal-value').value)||0,
+ quantity: parseFloat(document.getElementById('deal-quantity').value)||0,
  stage: document.getElementById('deal-stage').value||'lead',
  notes: document.getElementById('deal-notes').value.trim(),
  created: editingDealId ? (deals.find(x=>String(x.id)===String(editingDealId))?.created || new Date().toISOString()) : new Date().toISOString(),
