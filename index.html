@@ -627,6 +627,14 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <input type="text" id="deal-contact" placeholder="e.g. Ashish"/>
  </div>
  <div>
+ <label>Closure Month (when won)</label>
+ <input type="month" id="deal-closure-month"/>
+ </div>
+ <div>
+ <label>Salesperson</label>
+ <input type="text" id="deal-salesperson" placeholder="e.g. Your name"/>
+ </div>
+ <div>
  <label>State</label>
  <select id="deal-state">
  <option value="">Select state</option>
@@ -664,10 +672,6 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div>
  <label>Notes</label>
  <textarea id="deal-notes" rows="3" placeholder="Any additional notes..."></textarea>
- </div>
- <div>
- <label>Closure Month (when won)</label>
- <input type="month" id="deal-closure-month"/>
  </div>
  </div>
  <div class="modal-btns">
@@ -1676,7 +1680,24 @@ function renderDeals(){
  return;
  }
  
- const sorted=[...filtered].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+ // Sort: won deals by closure month (earliest first), others by created date (newest first)
+ const sorted=[...filtered].sort((a,b)=>{
+ const aIsWon=a.stage==='won';
+ const bIsWon=b.stage==='won';
+ if(aIsWon && bIsWon){
+ // Both won: sort by closure month (earliest first)
+ return (a.closureMonth||'').localeCompare(b.closureMonth||'');
+ } else if(aIsWon){
+ // a is won, b is not: won deals come first
+ return -1;
+ } else if(bIsWon){
+ // b is won, a is not
+ return 1;
+ } else {
+ // Neither won: sort by created date (newest first)
+ return (b.created||'').localeCompare(a.created||'');
+ }
+ });
  
  sorted.forEach(d=>{
  const card=document.createElement('div');
@@ -1694,11 +1715,11 @@ function renderDeals(){
  <div style="display:flex;justify-content:space-between;align-items:start">
  <div style="flex:1">
  <div style="font-weight:600;color:#111;font-size:15px">${esc(d.name)}</div>
- <div style="color:#666;font-size:13px">${esc(d.company||'')}</div>
+ <div style="color:#666;font-size:13px">${esc(d.company||'')}${d.salesperson ? ' • '+esc(d.salesperson) : ''}</div>
  </div>
  <div style="text-align:right;flex-shrink:0">
  <div style="font-weight:600;color:#1f2937;font-size:14px">${valueTxt}${qtyTxt}</div>
- <div style="color:#999;font-size:12px">${d.state||''}</div>
+ <div style="color:#999;font-size:12px">${d.state||''}${d.closureMonth ? ' • '+d.closureMonth : ''}</div>
  </div>
  </div>
  <div>${stageBadge}</div>
@@ -1716,6 +1737,7 @@ function openAddDealModal(){
  document.getElementById('deal-name').value='';
  document.getElementById('deal-company').value='';
  document.getElementById('deal-contact').value='';
+ document.getElementById('deal-salesperson').value='';
  document.getElementById('deal-state').value='';
  document.getElementById('deal-value').value='';
  document.getElementById('deal-quantity').value='';
@@ -1735,6 +1757,7 @@ function openEditDeal(id){
  document.getElementById('deal-name').value=d.name||'';
  document.getElementById('deal-company').value=d.company||'';
  document.getElementById('deal-contact').value=d.contact||'';
+ document.getElementById('deal-salesperson').value=d.salesperson||'';
  document.getElementById('deal-state').value=d.state||'';
  document.getElementById('deal-value').value=d.value||'';
  document.getElementById('deal-quantity').value=d.quantity||'';
@@ -1758,6 +1781,7 @@ function saveDeal(){
  name,
  company: document.getElementById('deal-company').value.trim(),
  contact: document.getElementById('deal-contact').value.trim(),
+ salesperson: document.getElementById('deal-salesperson').value.trim(),
  state: document.getElementById('deal-state').value,
  value: parseInt(document.getElementById('deal-value').value)||0,
  quantity: parseFloat(document.getElementById('deal-quantity').value)||0,
