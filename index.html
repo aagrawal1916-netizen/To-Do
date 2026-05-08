@@ -166,10 +166,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .isend:active{opacity:.85;transform:scale(.96)}
 .inote{width:40px;height:40px;border-radius:50%;background:#f59e0b;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
 .inote:active{opacity:.85;transform:scale(.96)}
-.imic{width:40px;height:40px;border-radius:50%;background:#3b82f6;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0;transition:background .15s}
-.imic:active{opacity:.85;transform:scale(.96)}
-.imic.recording{background:#ef4444;animation:micPulse 1.2s ease-in-out infinite}
-@keyframes micPulse{0%,100%{box-shadow:0 2px 4px rgba(0,0,0,.15),0 0 0 0 rgba(239,68,68,.7)}50%{box-shadow:0 2px 4px rgba(0,0,0,.15),0 0 0 10px rgba(239,68,68,0)}}
 
 /* Quick-save bottom sheet (long-press send) */
 #quick-save-sheet{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
@@ -434,9 +430,6 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="iwrap">
  <textarea id="msg-input" rows="1" placeholder="Message"></textarea>
  </div>
- <button class="imic" id="mic-btn" onclick="toggleVoice()" title="Voice input" aria-label="Voice input">
- <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></svg>
- </button>
  <button class="inote" onclick="saveAsNote()" title="Save as note" aria-label="Save as note">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
  </button>
@@ -1054,122 +1047,6 @@ function saveAsNote(){
  });
 }
 
-/* --- Voice input via Web Speech API --- */
-let voiceRecognition=null;
-let voiceActive=false;
-let voicePreText=''; // text that was in the input box BEFORE we started recording
-
-function getSpeechRecognition(){
- const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
- return SR;
-}
-
-function toggleVoice(){
- const SR=getSpeechRecognition();
- if(!SR){
- showToast('Voice not supported on this browser');
- return;
- }
- if(voiceActive){
- stopVoice();
- } else {
- startVoice();
- }
-}
-
-function startVoice(){
- const SR=getSpeechRecognition();
- if(!SR) return;
- try {
- voiceRecognition=new SR();
- } catch(e){
- showToast('Could not start voice');
- return;
- }
- voiceRecognition.continuous=true;
- voiceRecognition.interimResults=true;
- voiceRecognition.lang=navigator.language||'en-IN';
- // Snapshot what was in the input before recording (we'll append after)
- voicePreText=inp.value ? inp.value.trim() : '';
-
- voiceRecognition.onstart=()=>{
- voiceActive=true;
- const btn=document.getElementById('mic-btn');
- if(btn) btn.classList.add('recording');
- if(navigator.vibrate) navigator.vibrate(20);
- // Blur input so the Android keyboard mic doesn't compete with ours
- try { inp.blur(); } catch(e){}
- };
-
- voiceRecognition.onresult=(event)=>{
- // SIMPLE MODEL: rebuild full transcript from ALL results every time
- let fullText='';
- const debug=[];
- for(let i=0; i<event.results.length; i++){
- const t=event.results[i][0].transcript;
- fullText += t;
- if(event.results[i].isFinal) fullText += ' ';
- debug.push((event.results[i].isFinal?'[F]':'[i]')+t.slice(0,20));
- }
- const composed=(voicePreText ? voicePreText+' ' : '') + fullText;
- inp.value=composed.replace(/\s+/g,' ').trimStart();
- inp.style.height='auto';
- inp.style.height=Math.min(inp.scrollHeight,100)+'px';
- // DEBUG: show what API is sending us in placeholder so we can see
- inp.placeholder='Voice ['+event.results.length+']: '+debug.slice(-3).join(' | ');
- };
-
- voiceRecognition.onerror=(event)=>{
- const err=event.error;
- if(err==='not-allowed'||err==='service-not-allowed'){
- showToast('Microphone permission denied');
- } else if(err==='no-speech'){
- // ignore
- } else if(err==='aborted'){
- // intentional stop
- } else {
- showToast('Voice error: '+err);
- }
- };
-
- voiceRecognition.onend=()=>{
- voiceActive=false;
- const btn=document.getElementById('mic-btn');
- if(btn) btn.classList.remove('recording');
- voiceRecognition=null;
- inp.value=inp.value.trim();
- inp.placeholder='Message';
- if(inp.value){
- setTimeout(()=>inp.focus(),50);
- }
- };
-
- try {
- voiceRecognition.start();
- } catch(e){
- showToast('Could not start - try again');
- voiceActive=false;
- const btn=document.getElementById('mic-btn');
- if(btn) btn.classList.remove('recording');
- }
-}
-
-function stopVoice(){
- if(voiceRecognition){
- try { voiceRecognition.stop(); } catch(e){}
- }
- voiceActive=false;
- const btn=document.getElementById('mic-btn');
- if(btn) btn.classList.remove('recording');
- if(navigator.vibrate) navigator.vibrate(10);
-}
-
-(function checkVoiceSupport(){
- if(!getSpeechRecognition()){
- const btn=document.getElementById('mic-btn');
- if(btn) btn.style.display='none';
- }
-})();
 
 function handleReply(value,label){
  if(step===null){
@@ -3105,7 +2982,7 @@ if(chatLog.length>0){
  setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
  setTimeout(()=>{addMsg("<b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
  setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
- setTimeout(()=>{addMsg("Tip: tap the <b>blue mic button</b> to dictate, the <b>yellow note button</b> to save as a note, or long-press the green send button for quick options.");},4000);
+ setTimeout(()=>{addMsg("Tip: tap the <b>yellow note button</b> to save as a note, long-press the green send button for quick options. For voice input, use your keyboard's mic icon.");},4000);
 }
 </script>
 </body>
