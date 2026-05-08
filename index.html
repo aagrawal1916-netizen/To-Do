@@ -2798,50 +2798,6 @@ function renderCards(){
  });
 }
 
-/* --- Deals Tab (Mini CRM) --- */
-function renderDeals(){
- const filterStage=document.getElementById('deals-filter-stage').value;
- const filterState=document.getElementById('deals-filter-state').value;
- let filtered=[...deals];
- if(filterStage) filtered=filtered.filter(d=>d.stage===filterStage);
- if(filterState) filtered=filtered.filter(d=>d.state===filterState);
- const list=document.getElementById('deals-list');
- list.innerHTML='';
- if(!filtered.length){
- list.innerHTML=`<div style="padding:20px;text-align:center;color:#888;font-size:14px">No deals match this filter</div>`;
- return;
- }
- // Sort by updated date (newest first)
- filtered.sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
- filtered.forEach(deal=>{
- const card=document.createElement('div');
- card.style.cssText='background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 14px;cursor:pointer;transition:all 0.2s';
- const stageColor={'lead':'#94a3b8','contacted':'#f97316','demo':'#8b5cf6','won':'#10b981','lost':'#ef4444'}[deal.stage]||'#64748b';
- const val=(deal.value||0).toLocaleString('en-IN');
- card.innerHTML=`
- <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
- <div style="flex:1">
- <div style="font-weight:600;font-size:15px">${esc(deal.name)}</div>
- <div style="font-size:13px;color:#666">${esc(deal.company||'')}</div>
- </div>
- <div style="background:${stageColor};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;margin-left:8px">${deal.stage}</div>
- </div>
- <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
- <div><span style="color:#888">Value:</span> Rs${val}</div>
- <div><span style="color:#888">State:</span> ${deal.state}</div>
- </div>
- <div style="font-size:12px;color:#888">${deal.notes?deal.notes.slice(0,40)+'...':''}</div>`;
- card.onclick=()=>openDealEditor(deal.id);
- card.onmouseover=()=>card.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';
- card.onmouseout=()=>card.style.boxShadow='none';
- list.appendChild(card);
- });
-}
-
-// Filter handlers
-document.getElementById('deals-filter-stage').addEventListener('change',renderDeals);
-document.getElementById('deals-filter-state').addEventListener('change',renderDeals);
-
 /* Custom date picker */
 function openDatePicker(currentVal,cb){
  datePickerCallback=cb;
