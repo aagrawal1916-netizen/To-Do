@@ -185,6 +185,25 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 #card-viewer .cv-btn:active{opacity:.7}
 #card-viewer .cv-close{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:22px;line-height:1;cursor:pointer}
 
+/* Scan editor (crop card with draggable corners) */
+#scan-editor{position:fixed;inset:0;background:#0f172a;z-index:250;display:none;flex-direction:column;color:#fff}
+#scan-editor.open{display:flex}
+.scan-header{display:flex;align-items:center;padding:12px 14px;gap:12px;background:#1e293b}
+.scan-title{flex:1;text-align:center;font-size:15px;font-weight:600}
+.scan-cancel,.scan-retake{background:none;border:none;color:#fff;font-size:14px;padding:8px 4px;cursor:pointer;font-weight:500}
+.scan-cancel:active,.scan-retake:active{opacity:.6}
+.scan-hint{text-align:center;padding:10px 16px;font-size:13px;color:#94a3b8;background:#0f172a}
+#scan-wrap{flex:1;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;padding:8px;background:#0f172a;touch-action:none}
+#scan-stage{position:relative;display:inline-block;max-width:100%;max-height:100%}
+#scan-img{display:block;max-width:100%;max-height:calc(100vh - 200px);user-select:none;-webkit-user-drag:none;pointer-events:none}
+#scan-svg{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+#scan-handles{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.scan-dot{position:absolute;width:32px;height:32px;border-radius:50%;background:#8b5cf6;border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.4);transform:translate(-50%,-50%);pointer-events:auto;cursor:grab;touch-action:none;z-index:5}
+.scan-dot.active{transform:translate(-50%,-50%) scale(1.25);background:#7c3aed;cursor:grabbing}
+.scan-footer{padding:14px;background:#1e293b;display:flex;justify-content:center}
+.scan-confirm{background:#8b5cf6;color:#fff;border:none;padding:13px 32px;border-radius:24px;font-size:15px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(139,92,246,.4)}
+.scan-confirm:active{opacity:.85;transform:scale(.97)}
+
 /* Quick-save bottom sheet (long-press send) */
 #quick-save-sheet{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
 #quick-save-sheet.open{pointer-events:auto}
@@ -600,6 +619,31 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <button class="modal-btn secondary" onclick="cancelCardLabel()">Cancel</button>
  <button class="modal-btn primary" onclick="saveCardWithLabel()">Save card</button>
  </div>
+ </div>
+ </div>
+
+ <!-- Scan editor (crop + perspective) -->
+ <div id="scan-editor">
+ <div class="scan-header">
+ <button class="scan-cancel" onclick="closeScanEditor()">Cancel</button>
+ <div class="scan-title">Crop card</div>
+ <button class="scan-retake" onclick="retakeCardPhoto()">Retake</button>
+ </div>
+ <div class="scan-hint">Drag the corners to fit the card edges</div>
+ <div id="scan-wrap">
+ <div id="scan-stage">
+ <img id="scan-img" alt="card to crop"/>
+ <svg id="scan-svg"><polygon fill="rgba(139,92,246,0.15)" stroke="#8b5cf6" stroke-width="2.5" points=""/></svg>
+ <div id="scan-handles">
+ <div class="scan-dot" data-corner="0"></div>
+ <div class="scan-dot" data-corner="1"></div>
+ <div class="scan-dot" data-corner="2"></div>
+ <div class="scan-dot" data-corner="3"></div>
+ </div>
+ </div>
+ </div>
+ <div class="scan-footer">
+ <button class="scan-confirm" onclick="confirmCrop()">Crop & Save</button>
  </div>
  </div>
 
@@ -1128,11 +1172,224 @@ function processCardImage(file, callback){
  reader.readAsDataURL(file);
 }
 
+/* --- Scan Editor (Haystack-style crop + perspective fix) --- */
+let _scanState=null; // {imgEl, corners:[{x,y}*4], natW, natH, displayW, displayH}
+
+function openScanEditor(dataUrl){
+ const overlay=document.getElementById('scan-editor');
+ const img=document.getElementById('scan-img');
+ img.onload=()=>{
+ const natW=img.naturalWidth, natH=img.naturalHeight;
+ // Wait a frame for image to layout, then read displayed size
+ requestAnimationFrame(()=>{
+ const rect=img.getBoundingClientRect();
+ const dW=rect.width, dH=rect.height;
+ // Size the SVG to match the image so polygon coordinates align
+ const svg=document.getElementById('scan-svg');
+ svg.setAttribute('width', dW);
+ svg.setAttribute('height', dH);
+ svg.setAttribute('viewBox', `0 0 ${dW} ${dH}`);
+ // Default corners: 8% inset from each edge
+ const inset=0.08;
+ const corners=[
+ {x:dW*inset, y:dH*inset}, // top-left
+ {x:dW*(1-inset), y:dH*inset}, // top-right
+ {x:dW*(1-inset), y:dH*(1-inset)}, // bottom-right
+ {x:dW*inset, y:dH*(1-inset)} // bottom-left
+ ];
+ _scanState={imgEl:img, corners, natW, natH, displayW:dW, displayH:dH};
+ renderScanCorners();
+ });
+ };
+ img.src=dataUrl;
+ overlay.classList.add('open');
+}
+
+function closeScanEditor(){
+ document.getElementById('scan-editor').classList.remove('open');
+ document.getElementById('scan-img').src='';
+ _scanState=null;
+}
+
+function retakeCardPhoto(){
+ closeScanEditor();
+ setTimeout(()=>scanCard(),100);
+}
+
+function renderScanCorners(){
+ if(!_scanState) return;
+ const handles=document.getElementById('scan-handles');
+ const svg=document.getElementById('scan-svg');
+ // Update polygon
+ const poly=svg.querySelector('polygon');
+ poly.setAttribute('points', _scanState.corners.map(c=>`${c.x},${c.y}`).join(' '));
+ // Position handles
+ const dots=handles.querySelectorAll('.scan-dot');
+ _scanState.corners.forEach((c,i)=>{
+ dots[i].style.left=c.x+'px';
+ dots[i].style.top=c.y+'px';
+ });
+}
+
+function setupScanDragHandlers(){
+ const handles=document.getElementById('scan-handles');
+ const dots=handles.querySelectorAll('.scan-dot');
+ dots.forEach((dot, idx)=>{
+ let activePid=null;
+ dot.addEventListener('pointerdown',(e)=>{
+ e.preventDefault();
+ e.stopPropagation();
+ activePid=e.pointerId;
+ dot.setPointerCapture(e.pointerId);
+ dot.classList.add('active');
+ });
+ dot.addEventListener('pointermove',(e)=>{
+ if(e.pointerId!==activePid||!_scanState) return;
+ const wrap=document.getElementById('scan-wrap');
+ const rect=wrap.getBoundingClientRect();
+ // Image is centered in wrap; figure out image rect inside wrap
+ const imgRect=_scanState.imgEl.getBoundingClientRect();
+ let x=e.clientX-imgRect.left;
+ let y=e.clientY-imgRect.top;
+ // Clamp to image bounds
+ x=Math.max(0, Math.min(x, _scanState.displayW));
+ y=Math.max(0, Math.min(y, _scanState.displayH));
+ _scanState.corners[idx].x=x;
+ _scanState.corners[idx].y=y;
+ renderScanCorners();
+ });
+ dot.addEventListener('pointerup',(e)=>{
+ if(e.pointerId!==activePid) return;
+ activePid=null;
+ dot.releasePointerCapture(e.pointerId);
+ dot.classList.remove('active');
+ });
+ dot.addEventListener('pointercancel',()=>{
+ activePid=null;
+ dot.classList.remove('active');
+ });
+ });
+}
+
+// Perspective transform: maps 4 source corners to a rectangle.
+// Implements the algorithm: compute homography matrix, then for each pixel in
+// destination, compute source pixel and sample.
+function applyPerspectiveCrop(){
+ if(!_scanState) return null;
+ const {imgEl, corners, natW, natH, displayW, displayH} = _scanState;
+ // Convert display corners back to natural image coordinates
+ const sx = natW/displayW;
+ const sy = natH/displayH;
+ const src = corners.map(c => ({x: c.x*sx, y: c.y*sy}));
+ // Determine output size: average the side lengths
+ const dist=(a,b)=>Math.hypot(a.x-b.x, a.y-b.y);
+ const widthTop = dist(src[0], src[1]);
+ const widthBot = dist(src[3], src[2]);
+ const heightL = dist(src[0], src[3]);
+ const heightR = dist(src[1], src[2]);
+ const outW = Math.round(Math.max(widthTop, widthBot));
+ const outH = Math.round(Math.max(heightL, heightR));
+ if(outW<20||outH<20) return null;
+
+ // Compute homography from dst rectangle (0,0)-(outW,outH) to src quad
+ // Using a standard 4-point homography solve
+ const dst=[{x:0,y:0},{x:outW,y:0},{x:outW,y:outH},{x:0,y:outH}];
+ const H = computeHomography(dst, src);
+ if(!H) return null;
+
+ // Render to canvas
+ const canvas=document.createElement('canvas');
+ canvas.width=outW; canvas.height=outH;
+ const ctx=canvas.getContext('2d');
+ const out=ctx.createImageData(outW, outH);
+
+ // Sample source via offscreen canvas pre-painted with original image at natural size
+ const srcCanvas=document.createElement('canvas');
+ srcCanvas.width=natW; srcCanvas.height=natH;
+ const srcCtx=srcCanvas.getContext('2d');
+ srcCtx.drawImage(imgEl, 0, 0, natW, natH);
+ const srcData=srcCtx.getImageData(0, 0, natW, natH).data;
+
+ // For each pixel in dst, apply H to find source coord, sample (nearest neighbour for speed)
+ for(let y=0; y<outH; y++){
+ for(let x=0; x<outW; x++){
+ const w = H[6]*x + H[7]*y + 1;
+ const srcX = (H[0]*x + H[1]*y + H[2]) / w;
+ const srcY = (H[3]*x + H[4]*y + H[5]) / w;
+ // Clamp
+ const sxi = Math.max(0, Math.min(natW-1, Math.round(srcX)));
+ const syi = Math.max(0, Math.min(natH-1, Math.round(srcY)));
+ const srcIdx = (syi*natW + sxi)*4;
+ const dstIdx = (y*outW + x)*4;
+ out.data[dstIdx] = srcData[srcIdx];
+ out.data[dstIdx+1] = srcData[srcIdx+1];
+ out.data[dstIdx+2] = srcData[srcIdx+2];
+ out.data[dstIdx+3] = 255;
+ }
+ }
+ ctx.putImageData(out, 0, 0);
+
+ // Apply contrast/brightness boost via canvas filter trick
+ const finalCanvas=document.createElement('canvas');
+ finalCanvas.width=outW; finalCanvas.height=outH;
+ const finalCtx=finalCanvas.getContext('2d');
+ finalCtx.filter='contrast(1.15) brightness(1.05) saturate(1.1)';
+ finalCtx.drawImage(canvas, 0, 0);
+
+ return finalCanvas.toDataURL('image/jpeg', 0.85);
+}
+
+// Compute 3x3 homography H mapping `from` quad to `to` quad.
+// Returns flat array [a,b,c,d,e,f,g,h] (with last entry = 1).
+function computeHomography(from, to){
+ // Solve linear system Ax = b for 8 unknowns
+ const A=[];
+ const b=[];
+ for(let i=0; i<4; i++){
+ const fx=from[i].x, fy=from[i].y, tx=to[i].x, ty=to[i].y;
+ A.push([fx, fy, 1, 0, 0, 0, -fx*tx, -fy*tx]);
+ b.push(tx);
+ A.push([0, 0, 0, fx, fy, 1, -fx*ty, -fy*ty]);
+ b.push(ty);
+ }
+ // Gaussian elimination on 8x8 system
+ const n=8;
+ const M=A.map((row,i)=>row.concat([b[i]]));
+ for(let i=0; i<n; i++){
+ // Find pivot
+ let max=i;
+ for(let k=i+1; k<n; k++) if(Math.abs(M[k][i])>Math.abs(M[max][i])) max=k;
+ [M[i], M[max]] = [M[max], M[i]];
+ if(Math.abs(M[i][i])<1e-10) return null;
+ for(let k=i+1; k<n; k++){
+ const f=M[k][i]/M[i][i];
+ for(let j=i; j<=n; j++) M[k][j] -= f*M[i][j];
+ }
+ }
+ const x=new Array(n);
+ for(let i=n-1; i>=0; i--){
+ let s=M[i][n];
+ for(let j=i+1; j<n; j++) s -= M[i][j]*x[j];
+ x[i]=s/M[i][i];
+ }
+ return x; // 8 values; H matrix is [[x0,x1,x2],[x3,x4,x5],[x6,x7,1]]
+}
+
+function confirmCrop(){
+ const cropped=applyPerspectiveCrop();
+ if(!cropped){
+ showToast('Crop failed - try adjusting corners');
+ return;
+ }
+ closeScanEditor();
+ // Now prompt for label with the cropped image
+ promptCardLabel(cropped);
+}
+
 // When a photo is selected/captured
 document.getElementById('card-camera-input').addEventListener('change', function(e){
  const file=e.target.files && e.target.files[0];
  if(!file) return;
- // Reset input so same file can be reselected later
  e.target.value='';
 
  showToast('Processing card...');
@@ -1141,8 +1398,8 @@ document.getElementById('card-camera-input').addEventListener('change', function
  showToast('Could not read photo');
  return;
  }
- // Ask for a label
- promptCardLabel(dataUrl);
+ // Open crop editor instead of going straight to label
+ openScanEditor(dataUrl);
  });
 });
 
@@ -2903,6 +3160,7 @@ function renderWeekFull(){
 }
 
 loadAll();updateSub();updateNotifLabel();
+setupScanDragHandlers();
 
 // --- Calendar horizontal swipe to navigate (month or week) ---
 (function setupCalendarSwipe(){
