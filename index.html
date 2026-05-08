@@ -230,7 +230,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .modal p{font-size:13px;color:var(--wmuted);margin-bottom:14px;line-height:1.5}
 .modal label{font-size:12px;font-weight:600;color:var(--wmuted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;display:block;margin-top:12px}
 .modal label:first-of-type{margin-top:0}
-.modal input[type=text],.modal textarea,.modal input[type=date]{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff}
+.modal input[type=text],.modal textarea,.modal input[type=date],.modal input[type=number],.modal select{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff;box-sizing:border-box}
 .modal input:focus,.modal textarea:focus{border-color:var(--wteal)}
 .modal textarea{resize:vertical;min-height:60px;line-height:1.4}
 .state-select{width:100%;border:1.5px solid #ddd;border-radius:8px;padding:10px 12px;font-size:14.5px;font-family:inherit;outline:none;color:#111;background:#fff;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath fill='%23667781' d='M6 8L0 0h12z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:36px}
@@ -425,6 +425,8 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="tab" id="tab-tasks" onclick="switchTab('tasks')">TASKS</div>
  <div class="tab" id="tab-cal" onclick="switchTab('cal')">CALENDAR</div>
  <div class="tab" id="tab-notes" onclick="switchTab('notes')">NOTES</div>
+ <div class="tab" id="tab-cards" onclick="switchTab('cards')">CARDS</div>
+ <div class="tab" id="tab-deals" onclick="switchTab('deals')">DEALS</div>
  </div>
 
  <div class="chat-bg" id="chat-view"></div>
@@ -457,6 +459,40 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
  <div class="tv" id="notes-view" style="display:none">
  <div class="tbody" id="notes-list" style="padding-top:14px"></div>
+ </div>
+
+ <div class="tv" id="cards-view" style="display:none">
+ <div class="tbody" id="cards-list" style="padding-top:14px"></div>
+ </div>
+
+ <div class="tv" id="deals-view" style="display:none">
+ <div style="padding:12px 14px">
+ <div style="display:flex;gap:10px;margin-bottom:14px">
+ <select id="deals-filter-stage" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <option value="">All stages</option>
+ <option value="lead">Lead</option>
+ <option value="contacted">Contacted</option>
+ <option value="demo">Demo</option>
+ <option value="won">Won</option>
+ <option value="lost">Lost</option>
+ </select>
+ <select id="deals-filter-state" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <option value="">All states</option>
+ <option value="MP">MP</option>
+ <option value="CG">CG</option>
+ <option value="GJ">GJ</option>
+ <option value="MH">MH</option>
+ <option value="UP">UP</option>
+ <option value="WB">WB</option>
+ <option value="Odisha">Odisha</option>
+ <option value="Assam">Assam</option>
+ <option value="Jharkhand">Jharkhand</option>
+ <option value="Bihar">Bihar</option>
+ </select>
+ <button onclick="openAddDealModal()" style="width:44px;height:44px;border-radius:50%;background:#10b981;color:#fff;border:none;font-size:20px;cursor:pointer;flex-shrink:0">+</button>
+ </div>
+ <div id="deals-list" style="display:flex;flex-direction:column;gap:10px"></div>
+ </div>
  </div>
 
  <div class="tv" id="search-view" style="display:none">
@@ -527,6 +563,67 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <button class="modal-btn danger" onclick="deleteNoteFromEdit()">Delete</button>
  <button class="modal-btn secondary" onclick="closeNote()">Cancel</button>
  <button class="modal-btn primary" onclick="saveNoteEdit()">Save</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Deal modal -->
+ <div class="modal-bg" id="deal-modal">
+ <div class="modal">
+ <h3 id="deal-modal-title">Add deal</h3>
+ <div style="display:flex;flex-direction:column;gap:12px">
+ <div>
+ <label>Deal name</label>
+ <input type="text" id="deal-name" placeholder="e.g. MP Tender Q3"/>
+ </div>
+ <div>
+ <label>Company</label>
+ <input type="text" id="deal-company" placeholder="e.g. ABC Motors"/>
+ </div>
+ <div>
+ <label>Contact name</label>
+ <input type="text" id="deal-contact" placeholder="e.g. Ashish"/>
+ </div>
+ <div>
+ <label>State</label>
+ <select id="deal-state">
+ <option value="">Select state</option>
+ <option value="MP">MP</option>
+ <option value="CG">CG</option>
+ <option value="GJ">GJ</option>
+ <option value="MH">MH</option>
+ <option value="UP">UP</option>
+ <option value="WB">WB</option>
+ <option value="Odisha">Odisha</option>
+ <option value="Assam">Assam</option>
+ <option value="Jharkhand">Jharkhand</option>
+ <option value="Bihar">Bihar</option>
+ </select>
+ </div>
+ <div>
+ <label>Value (₹)</label>
+ <input type="number" id="deal-value" placeholder="100000" min="0"/>
+ </div>
+ <div>
+ <label>Stage</label>
+ <select id="deal-stage">
+ <option value="lead">Lead</option>
+ <option value="contacted">Contacted</option>
+ <option value="demo">Demo</option>
+ <option value="negotiation">Negotiation</option>
+ <option value="won">Won</option>
+ <option value="lost">Lost</option>
+ </select>
+ </div>
+ <div>
+ <label>Notes</label>
+ <textarea id="deal-notes" rows="3" placeholder="Any additional notes..."></textarea>
+ </div>
+ </div>
+ <div class="modal-btns">
+ <button class="modal-btn danger" id="deal-delete-btn" style="display:none" onclick="deleteDealFromModal()">Delete</button>
+ <button class="modal-btn secondary" onclick="closeDealModal()">Cancel</button>
+ <button class="modal-btn primary" onclick="saveDeal()">Save</button>
  </div>
  </div>
  </div>
@@ -622,6 +719,48 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
  </div>
 
+ <!-- Deal editor modal -->
+ <div class="modal-bg" id="deal-modal" data-deal-id="">
+ <div class="modal">
+ <h3 id="deal-modal-title">New deal</h3>
+ <label>Deal name</label>
+ <input type="text" id="deal-name" placeholder="e.g. MP Tender Q3" autocomplete="off"/>
+ <label>Company / dealer</label>
+ <input type="text" id="deal-company" placeholder="e.g. ABC Motors" autocomplete="off"/>
+ <label>State</label>
+ <select id="deal-state">
+ <option value="">Select state</option>
+ <option value="MP">MP</option>
+ <option value="CG">CG</option>
+ <option value="GJ">GJ</option>
+ <option value="MH">MH</option>
+ <option value="UP">UP</option>
+ <option value="WB">WB</option>
+ <option value="Odisha">Odisha</option>
+ <option value="Assam">Assam</option>
+ <option value="Jharkhand">Jharkhand</option>
+ <option value="Bihar">Bihar</option>
+ </select>
+ <label>Stage</label>
+ <select id="deal-stage">
+ <option value="lead">Lead</option>
+ <option value="contacted">Contacted</option>
+ <option value="demo">Demo</option>
+ <option value="won">Won</option>
+ <option value="lost">Lost</option>
+ </select>
+ <label>Value (Rs)</label>
+ <input type="number" id="deal-value" placeholder="e.g. 50000" autocomplete="off"/>
+ <label>Notes</label>
+ <textarea id="deal-notes" placeholder="Notes about this deal..." style="resize:vertical;height:80px"></textarea>
+ <div class="modal-btns">
+ <button class="modal-btn secondary" onclick="closeDealModal()">Cancel</button>
+ <button class="modal-btn secondary" id="deal-delete-btn" onclick="deleteDeal()" style="display:none;background:#ef4444">Delete</button>
+ <button class="modal-btn primary" onclick="saveDeal()">Save deal</button>
+ </div>
+ </div>
+ </div>
+
  <!-- Scan editor (crop + perspective) -->
  <div id="scan-editor">
  <div class="scan-header">
@@ -661,11 +800,12 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
 <script>
 /* Storage */
-const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1', LS_CHAT='td_chat_v1';
+const LS_TASKS='td_tasks_v1', LS_NOTES='td_notes_v1', LS_CHAT='td_chat_v1', LS_DEALS='td_deals_v1';
 function saveAll(){
  try{
  localStorage.setItem(LS_TASKS, JSON.stringify(tasks));
  localStorage.setItem(LS_NOTES, JSON.stringify(notes));
+ localStorage.setItem(LS_DEALS, JSON.stringify(deals));
  }catch(e){}
 }
 function saveChat(){
@@ -676,11 +816,12 @@ function loadAll(){
  const t=localStorage.getItem(LS_TASKS); if(t) tasks=JSON.parse(t)||[];
  const n=localStorage.getItem(LS_NOTES); if(n) notes=JSON.parse(n)||[];
  const c=localStorage.getItem(LS_CHAT); if(c) chatLog=JSON.parse(c)||[];
+ const d=localStorage.getItem(LS_DEALS); if(d) deals=JSON.parse(d)||[];
  }catch(e){}
 }
 
 /* State */
-let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all', currentTab='chat';
+let tasks=[], notes=[], chatLog=[], pending=[], step=null, activeFilter='all', currentTab='chat', deals=[];
 let editingTaskId=null, editingNoteId=null, datePickerCallback=null, datePickerCurrentValue='';
 let undoState=null, toastTimer=null;
 let pressTimer=null, longPressed=false;
@@ -1135,6 +1276,7 @@ function saveAsNote(){
  notes=notes.filter(n=>!ids.includes(n.id));
  saveAll();updateSub();
  if(currentTab==='notes') renderNotes();
+ else if(currentTab==='cards') renderCards();
  });
 }
 
@@ -1446,7 +1588,7 @@ function saveCardWithLabel(){
  if(currentTab==='notes') renderNotes();
  // Confirm in chat
  if(currentTab==='chat'){
- addMsg(`Saved card: <b>${esc(note.text)}</b><div style="margin-top:6px"><img src="${attr(dataUrl)}" style="max-width:160px;max-height:100px;border-radius:6px;border:1px solid #ddd"/></div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('notes');rmQR()">View notes</div></div>`);
+ addMsg(`Saved card: <b>${esc(note.text)}</b><div style="margin-top:6px"><img src="${attr(dataUrl)}" style="max-width:160px;max-height:100px;border-radius:6px;border:1px solid #ddd"/></div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('cards');rmQR()">View cards</div></div>`);
  } else {
  showToast(`Card saved: ${note.text}`);
  }
@@ -1493,6 +1635,146 @@ function deleteCardFromViewer(){
  });
  },150);
 }
+
+/* --- Minimal CRM (deals tracking) --- */
+let editingDealId=null;
+const DEAL_STAGES=['lead','contacted','demo','negotiation','won','lost'];
+const STAGE_LABELS={lead:'Lead',contacted:'Contacted',demo:'Demo',negotiation:'Negotiation',won:'Won',lost:'Lost'};
+const STAGE_COLORS={lead:'#f59e0b',contacted:'#3b82f6',demo:'#8b5cf6',negotiation:'#ec4899',won:'#10b981',lost:'#ef4444'};
+
+function renderDeals(){
+ const list=document.getElementById('deals-list');
+ list.innerHTML='';
+ const stageFilter=document.getElementById('deals-filter-stage').value;
+ const stateFilter=document.getElementById('deals-filter-state').value;
+ 
+ let filtered=deals;
+ if(stageFilter) filtered=filtered.filter(d=>d.stage===stageFilter);
+ if(stateFilter) filtered=filtered.filter(d=>d.state===stateFilter);
+ 
+ if(!filtered.length){
+ list.innerHTML=`<div class="tempty" style="margin-top:20px">No deals yet <br><span style="font-size:13px">Tap + to add a deal.</span></div>`;
+ return;
+ }
+ 
+ // Sort by created date (newest first)
+ const sorted=[...filtered].sort((a,b)=>(b.created||'').localeCompare(a.created||''));
+ 
+ sorted.forEach(d=>{
+ const card=document.createElement('div');
+ card.style.cssText='background:#fff;border:1px solid #e5e7eb;border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px;cursor:pointer;transition:box-shadow .15s';
+ card.onmouseover=()=>card.style.boxShadow='0 2px 8px rgba(0,0,0,.1)';
+ card.onmouseout=()=>card.style.boxShadow='none';
+ 
+ const stageColor=STAGE_COLORS[d.stage]||'#6b7280';
+ const stageBadge=`<span style="display:inline-block;background:${stageColor};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600">${STAGE_LABELS[d.stage]||d.stage}</span>`;
+ 
+ const valueTxt = d.value ? `₹${(d.value/100000).toFixed(1)}L` : '-';
+ 
+ card.innerHTML=`
+ <div style="display:flex;justify-content:space-between;align-items:start">
+ <div style="flex:1">
+ <div style="font-weight:600;color:#111;font-size:15px">${esc(d.name)}</div>
+ <div style="color:#666;font-size:13px">${esc(d.company||'')}</div>
+ </div>
+ <div style="text-align:right;flex-shrink:0">
+ <div style="font-weight:600;color:#1f2937;font-size:14px">${valueTxt}</div>
+ <div style="color:#999;font-size:12px">${d.state||''}</div>
+ </div>
+ </div>
+ <div>${stageBadge}</div>
+ `;
+ 
+ card.addEventListener('click',()=>openEditDeal(d.id));
+ list.appendChild(card);
+ });
+}
+
+function openAddDealModal(){
+ editingDealId=null;
+ document.getElementById('deal-modal-title').textContent='Add deal';
+ document.getElementById('deal-delete-btn').style.display='none';
+ document.getElementById('deal-name').value='';
+ document.getElementById('deal-company').value='';
+ document.getElementById('deal-contact').value='';
+ document.getElementById('deal-state').value='';
+ document.getElementById('deal-value').value='';
+ document.getElementById('deal-stage').value='lead';
+ document.getElementById('deal-notes').value='';
+ document.getElementById('deal-modal').classList.add('open');
+ setTimeout(()=>document.getElementById('deal-name').focus(),100);
+}
+
+function openEditDeal(id){
+ const d=deals.find(x=>String(x.id)===String(id));
+ if(!d) return;
+ editingDealId=id;
+ document.getElementById('deal-modal-title').textContent='Edit deal';
+ document.getElementById('deal-delete-btn').style.display='block';
+ document.getElementById('deal-name').value=d.name||'';
+ document.getElementById('deal-company').value=d.company||'';
+ document.getElementById('deal-contact').value=d.contact||'';
+ document.getElementById('deal-state').value=d.state||'';
+ document.getElementById('deal-value').value=d.value||'';
+ document.getElementById('deal-stage').value=d.stage||'lead';
+ document.getElementById('deal-notes').value=d.notes||'';
+ document.getElementById('deal-modal').classList.add('open');
+}
+
+function closeDealModal(){
+ document.getElementById('deal-modal').classList.remove('open');
+ editingDealId=null;
+}
+
+function saveDeal(){
+ const name=document.getElementById('deal-name').value.trim();
+ if(!name){showToast('Deal name required');return;}
+ 
+ const deal={
+ id: editingDealId || uid(),
+ name,
+ company: document.getElementById('deal-company').value.trim(),
+ contact: document.getElementById('deal-contact').value.trim(),
+ state: document.getElementById('deal-state').value,
+ value: parseInt(document.getElementById('deal-value').value)||0,
+ stage: document.getElementById('deal-stage').value||'lead',
+ notes: document.getElementById('deal-notes').value.trim(),
+ created: editingDealId ? (deals.find(x=>String(x.id)===String(editingDealId))?.created || new Date().toISOString()) : new Date().toISOString(),
+ updated: new Date().toISOString()
+ };
+ 
+ if(editingDealId){
+ const idx=deals.findIndex(x=>String(x.id)===String(editingDealId));
+ if(idx>=0) deals[idx]=deal;
+ showToast('Deal updated');
+ } else {
+ deals.push(deal);
+ showToast('Deal added');
+ }
+ 
+ saveAll();
+ closeDealModal();
+ renderDeals();
+}
+
+function deleteDealFromModal(){
+ if(!editingDealId) return;
+ const idx=deals.findIndex(x=>String(x.id)===String(editingDealId));
+ if(idx<0) return;
+ const removed=deals.splice(idx,1)[0];
+ saveAll();
+ closeDealModal();
+ renderDeals();
+ showToast('Deal deleted',()=>{
+ deals.splice(idx,0,removed);
+ saveAll();
+ renderDeals();
+ });
+}
+
+// Wire up filter dropdowns to re-render
+document.getElementById('deals-filter-stage')?.addEventListener('change',renderDeals);
+document.getElementById('deals-filter-state')?.addEventListener('change',renderDeals);
 
 function handleReply(value,label){
  if(step===null){
@@ -1956,7 +2238,7 @@ function goBack(){
 }
 
 function switchTab(t){
- if(!['chat','tasks','notes','cal'].includes(t)) t='chat';
+ if(!['chat','tasks','notes','cal','cards','deals'].includes(t)) t='chat';
  currentTab=t;
  const app=document.getElementById('app');
  if(app.classList.contains('search-open')){
@@ -1967,7 +2249,7 @@ function switchTab(t){
  document.getElementById('search-view').style.display='none';
  document.getElementById('tabs').style.display='flex';
 
- ['chat','tasks','cal','notes'].forEach(name=>{
+ ['chat','tasks','cal','notes','cards','deals'].forEach(name=>{
  const tab=document.getElementById('tab-'+name);
  if(tab) tab.classList.toggle('active',t===name);
  });
@@ -1975,9 +2257,13 @@ function switchTab(t){
  document.getElementById('tasks-view').style.display=t==='tasks'?'flex':'none';
  document.getElementById('cal-view').style.display=t==='cal'?'flex':'none';
  document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
+ document.getElementById('cards-view').style.display=t==='cards'?'flex':'none';
+ document.getElementById('deals-view').style.display=t==='deals'?'flex':'none';
  document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
  if(t==='tasks'){document.getElementById('tasks-view').style.flexDirection='column';renderTasks();}
  else if(t==='notes'){document.getElementById('notes-view').style.flexDirection='column';renderNotes();}
+ else if(t==='cards'){document.getElementById('cards-view').style.flexDirection='column';renderCards();}
+ else if(t==='deals'){document.getElementById('deals-view').style.flexDirection='column';renderDeals();}
  else if(t==='cal'){document.getElementById('cal-view').style.flexDirection='column';renderCalendar();}
  else if(t==='chat'){chatEl.scrollTop=chatEl.scrollHeight;}
 }
@@ -2405,36 +2691,21 @@ function deleteTaskFromEdit(){
 /* Notes */
 function renderNotes(){
  const list=document.getElementById('notes-list');list.innerHTML='';
- if(!notes.length){
+ // Filter out cards (kind='card') - they show in cards-view instead
+ const textNotes=notes.filter(n=>n.kind!=='card');
+ if(!textNotes.length){
  list.innerHTML=`<div class="tempty">No notes yet <br><span style="font-size:13px">Dump info like passwords, ideas, or facts in chat.</span></div>`;
  return;
  }
- const sorted=[...notes].sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+ const sorted=[...textNotes].sort((a,b)=>(b.at||'').localeCompare(a.at||''));
  sorted.forEach(n=>{
  const card=document.createElement('div');
  card.className='ncard';
- if(n.kind==='card') card.classList.add('ncard-photo');
  const when=n.at?new Date(n.at):new Date();
  const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
- if(n.kind==='card' && n.image){
- // Card-style note with photo
- const label=n.text||'Untitled card';
- card.innerHTML=`
- <img class="ncard-img" src="${attr(n.image)}" alt="card" loading="lazy"/>
- <div class="ncard-body">
- <div class="ncard-tag">CARD</div>
- <div class="ncard-text">${esc(label)}</div>
- <div class="ncard-time">${wt}</div>
- </div>
- <div class="ncard-del"></div>`;
- card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
- card.querySelector('.ncard-img').onclick=(e)=>{e.stopPropagation();openCardViewer(n.id);};
- card.addEventListener('click',()=>openEditNote(n.id));
- } else {
  card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del"></div>`;
  card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
  card.addEventListener('click',()=>openEditNote(n.id));
- }
  list.appendChild(card);
  });
 }
@@ -2471,6 +2742,145 @@ function deleteNote(id,silent){
  if(!silent) showToast('Note deleted',()=>{notes.splice(idx,0,removed);saveAll();renderNotes();updateSub();});
  else showToast('Note deleted',()=>{notes.splice(idx,0,removed);saveAll();renderNotes();updateSub();});
 }
+
+/* --- Cards Tab --- */
+function renderCards(){
+ const list=document.getElementById('cards-list');list.innerHTML='';
+ const cards=notes.filter(n=>n.kind==='card');
+ if(!cards.length){
+ list.innerHTML=`<div class="tempty">No visiting cards yet <br><span style="font-size:13px">Tap the camera to scan a card.</span></div>`;
+ return;
+ }
+ const sorted=[...cards].sort((a,b)=>(b.at||'').localeCompare(a.at||''));
+ sorted.forEach(n=>{
+ const card=document.createElement('div');
+ card.className='ncard ncard-photo';
+ const when=n.at?new Date(n.at):new Date();
+ const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+ const label=n.text||'Untitled card';
+ card.innerHTML=`
+ <img class="ncard-img" src="${attr(n.image)}" alt="card" loading="lazy"/>
+ <div class="ncard-body">
+ <div class="ncard-tag">CARD</div>
+ <div class="ncard-text">${esc(label)}</div>
+ <div class="ncard-time">${wt}</div>
+ </div>
+ <div class="ncard-del"></div>`;
+ card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
+ card.querySelector('.ncard-img').onclick=(e)=>{e.stopPropagation();openCardViewer(n.id);};
+ card.addEventListener('click',()=>openEditNote(n.id));
+ list.appendChild(card);
+ });
+}
+
+/* --- Deals Tab (Mini CRM) --- */
+function renderDeals(){
+ const filterStage=document.getElementById('deals-filter-stage').value;
+ const filterState=document.getElementById('deals-filter-state').value;
+ let filtered=[...deals];
+ if(filterStage) filtered=filtered.filter(d=>d.stage===filterStage);
+ if(filterState) filtered=filtered.filter(d=>d.state===filterState);
+ const list=document.getElementById('deals-list');
+ list.innerHTML='';
+ if(!filtered.length){
+ list.innerHTML=`<div style="padding:20px;text-align:center;color:#888;font-size:14px">No deals match this filter</div>`;
+ return;
+ }
+ // Sort by updated date (newest first)
+ filtered.sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));
+ filtered.forEach(deal=>{
+ const card=document.createElement('div');
+ card.style.cssText='background:#fff;border:1px solid #ddd;border-radius:8px;padding:12px 14px;cursor:pointer;transition:all 0.2s';
+ const stageColor={'lead':'#94a3b8','contacted':'#f97316','demo':'#8b5cf6','won':'#10b981','lost':'#ef4444'}[deal.stage]||'#64748b';
+ const val=(deal.value||0).toLocaleString('en-IN');
+ card.innerHTML=`
+ <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:8px">
+ <div style="flex:1">
+ <div style="font-weight:600;font-size:15px">${esc(deal.name)}</div>
+ <div style="font-size:13px;color:#666">${esc(deal.company||'')}</div>
+ </div>
+ <div style="background:${stageColor};color:#fff;padding:4px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;margin-left:8px">${deal.stage}</div>
+ </div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:6px">
+ <div><span style="color:#888">Value:</span> Rs${val}</div>
+ <div><span style="color:#888">State:</span> ${deal.state}</div>
+ </div>
+ <div style="font-size:12px;color:#888">${deal.notes?deal.notes.slice(0,40)+'...':''}</div>`;
+ card.onclick=()=>openDealEditor(deal.id);
+ card.onmouseover=()=>card.style.boxShadow='0 2px 8px rgba(0,0,0,0.1)';
+ card.onmouseout=()=>card.style.boxShadow='none';
+ list.appendChild(card);
+ });
+}
+
+function openAddDealModal(){
+ document.getElementById('deal-modal-title').textContent='New deal';
+ document.getElementById('deal-modal').dataset.dealId='';
+ document.getElementById('deal-delete-btn').style.display='none';
+ document.getElementById('deal-name').value='';
+ document.getElementById('deal-company').value='';
+ document.getElementById('deal-state').value='';
+ document.getElementById('deal-stage').value='lead';
+ document.getElementById('deal-value').value='';
+ document.getElementById('deal-notes').value='';
+ document.getElementById('deal-modal').classList.add('open');
+ setTimeout(()=>document.getElementById('deal-name').focus(),100);
+}
+
+function openDealEditor(id){
+ const deal=deals.find(d=>String(d.id)===String(id)); if(!deal)return;
+ document.getElementById('deal-modal-title').textContent='Edit deal';
+ document.getElementById('deal-modal').dataset.dealId=id;
+ document.getElementById('deal-delete-btn').style.display='block';
+ document.getElementById('deal-name').value=deal.name||'';
+ document.getElementById('deal-company').value=deal.company||'';
+ document.getElementById('deal-state').value=deal.state||'';
+ document.getElementById('deal-stage').value=deal.stage||'lead';
+ document.getElementById('deal-value').value=deal.value||'';
+ document.getElementById('deal-notes').value=deal.notes||'';
+ document.getElementById('deal-modal').classList.add('open');
+}
+
+function closeDealModal(){
+ document.getElementById('deal-modal').classList.remove('open');
+ document.getElementById('deal-modal').dataset.dealId='';
+}
+
+function saveDeal(){
+ const id=document.getElementById('deal-modal').dataset.dealId;
+ const name=document.getElementById('deal-name').value.trim();
+ const company=document.getElementById('deal-company').value.trim();
+ const state=document.getElementById('deal-state').value;
+ const stage=document.getElementById('deal-stage').value;
+ const value=parseInt(document.getElementById('deal-value').value)||0;
+ const notes=document.getElementById('deal-notes').value.trim();
+ if(!name){showToast('Deal name required');return;}
+ if(!state){showToast('State required');return;}
+ if(id){
+ const deal=deals.find(d=>String(d.id)===String(id));
+ if(deal){
+ deal.name=name;deal.company=company;deal.state=state;deal.stage=stage;deal.value=value;deal.notes=notes;deal.updatedAt=new Date().toISOString();
+ }
+ } else {
+ deals.push({id:uid(),name,company,state,stage,value,notes,createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+ }
+ saveAll();closeDealModal();renderDeals();
+ showToast(id?'Deal updated':'Deal created');
+}
+
+function deleteDeal(){
+ const id=document.getElementById('deal-modal').dataset.dealId;
+ if(!id) return;
+ const idx=deals.findIndex(d=>String(d.id)===String(id));
+ if(idx<0) return;
+ const removed=deals.splice(idx,1)[0];
+ saveAll();closeDealModal();renderDeals();
+ showToast('Deal deleted',()=>{deals.splice(idx,0,removed);saveAll();renderDeals();});
+}
+
+// Filter handlers
+document.getElementById('deals-filter-stage').addEventListener('change',renderDeals);
+document.getElementById('deals-filter-state').addEventListener('change',renderDeals);
 
 /* Custom date picker */
 function openDatePicker(currentVal,cb){
@@ -2519,12 +2929,13 @@ function renderSearch(q){
  const out=document.getElementById('search-results');
  q=q.trim().toLowerCase();
  if(!q){
- out.innerHTML=`<div class="sr-empty">Type to search across tasks and notes...</div>`;
+ out.innerHTML=`<div class="sr-empty">Type to search across tasks, notes, and cards...</div>`;
  return;
  }
  const matchT=tasks.filter(t=>t.text.toLowerCase().includes(q));
- const matchN=notes.filter(n=>n.text.toLowerCase().includes(q));
- if(!matchT.length&&!matchN.length){
+ const matchN=notes.filter(n=>n.kind!=='card'&&n.text.toLowerCase().includes(q));
+ const matchC=notes.filter(n=>n.kind==='card'&&n.text.toLowerCase().includes(q));
+ if(!matchT.length&&!matchN.length&&!matchC.length){
  out.innerHTML=`<div class="sr-empty">No matches for "${esc(q)}"</div>`;
  return;
  }
@@ -2534,7 +2945,6 @@ function renderSearch(q){
  sec.innerHTML=`<div class="sr-h">Tasks . ${matchT.length}</div>`;
  matchT.forEach(t=>{
  const c=createTaskCard({...t,text:hl(t.text,q)});
- // hl returns html; since our createTaskCard escapes the name, build manually
  c.querySelector('.tname').innerHTML=hl(esc(t.text),q);
  sec.appendChild(c);
  });
@@ -2550,6 +2960,19 @@ function renderSearch(q){
  const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
  card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${hl(esc(n.text),q)}</div><div class="ncard-time">${wt}</div></div>`;
  card.onclick=()=>{closeSearch();switchTab('notes');setTimeout(()=>openEditNote(n.id),100);};
+ sec.appendChild(card);
+ });
+ out.appendChild(sec);
+ }
+ if(matchC.length){
+ const sec=document.createElement('div');sec.className='sr-section';
+ sec.innerHTML=`<div class="sr-h">Cards . ${matchC.length}</div>`;
+ matchC.forEach(n=>{
+ const card=document.createElement('div');
+ card.className='ncard ncard-photo';
+ card.style.height='120px';
+ card.innerHTML=`<img src="${attr(n.image)}" alt="card" style="width:100%;height:100%;object-fit:cover;border-radius:6px"/>`;
+ card.onclick=()=>{closeSearch();switchTab('cards');setTimeout(()=>openCardViewer(n.id),100);};
  sec.appendChild(card);
  });
  out.appendChild(sec);
@@ -2577,7 +3000,7 @@ function exportData(){
  closeMenu();
  const data={
  exportedAt:new Date().toISOString(),
- tasks,notes,
+ tasks,notes,deals,
  version:1
  };
  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
@@ -2764,12 +3187,15 @@ document.getElementById('import-input').addEventListener('change', e=>{
  try{
  const data=JSON.parse(ev.target.result);
  if(!data||!Array.isArray(data.tasks)){throw new Error('Invalid backup');}
- showConfirm('Import backup?',`Replace your current ${tasks.length} tasks and ${notes.length} notes with ${data.tasks.length} tasks and ${(data.notes||[]).length} notes from the backup?`,()=>{
+ showConfirm('Import backup?',`Replace your current ${tasks.length} tasks, ${notes.length} notes, and ${deals.length} deals with ${data.tasks.length} tasks, ${(data.notes||[]).length} notes, and ${(data.deals||[]).length} deals from the backup?`,()=>{
  tasks=data.tasks||[];
  notes=data.notes||[];
+ deals=data.deals||[];
  saveAll();updateSub();
  if(currentTab==='tasks') renderTasks();
  else if(currentTab==='notes') renderNotes();
+ else if(currentTab==='cards') renderCards();
+ else if(currentTab==='deals') renderDeals();
  else if(currentTab==='cal') renderCalendar();
  showToast('Backup imported');
  });
