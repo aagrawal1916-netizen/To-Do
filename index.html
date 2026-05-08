@@ -514,6 +514,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <option value="lead">Lead</option>
  <option value="contacted">Contacted</option>
  <option value="demo">Demo</option>
+ <option value="negotiation">Negotiation</option>
  <option value="won">Won</option>
  <option value="lost">Lost</option>
  </select>
@@ -664,6 +665,10 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <label>Notes</label>
  <textarea id="deal-notes" rows="3" placeholder="Any additional notes..."></textarea>
  </div>
+ <div>
+ <label>Closure Month (when won)</label>
+ <input type="month" id="deal-closure-month"/>
+ </div>
  </div>
  <div class="modal-btns">
  <button class="modal-btn danger" id="deal-delete-btn" style="display:none" onclick="deleteDealFromModal()">Delete</button>
@@ -760,48 +765,6 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="modal-btns">
  <button class="modal-btn secondary" onclick="cancelCardLabel()">Cancel</button>
  <button class="modal-btn primary" onclick="saveCardWithLabel()">Save card</button>
- </div>
- </div>
- </div>
-
- <!-- Deal editor modal -->
- <div class="modal-bg" id="deal-modal" data-deal-id="">
- <div class="modal">
- <h3 id="deal-modal-title">New deal</h3>
- <label>Deal name</label>
- <input type="text" id="deal-name" placeholder="e.g. MP Tender Q3" autocomplete="off"/>
- <label>Company / dealer</label>
- <input type="text" id="deal-company" placeholder="e.g. ABC Motors" autocomplete="off"/>
- <label>State</label>
- <select id="deal-state">
- <option value="">Select state</option>
- <option value="MP">MP</option>
- <option value="CG">CG</option>
- <option value="GJ">GJ</option>
- <option value="MH">MH</option>
- <option value="UP">UP</option>
- <option value="WB">WB</option>
- <option value="Odisha">Odisha</option>
- <option value="Assam">Assam</option>
- <option value="Jharkhand">Jharkhand</option>
- <option value="Bihar">Bihar</option>
- </select>
- <label>Stage</label>
- <select id="deal-stage">
- <option value="lead">Lead</option>
- <option value="contacted">Contacted</option>
- <option value="demo">Demo</option>
- <option value="won">Won</option>
- <option value="lost">Lost</option>
- </select>
- <label>Value (Rs)</label>
- <input type="number" id="deal-value" placeholder="e.g. 50000" autocomplete="off"/>
- <label>Notes</label>
- <textarea id="deal-notes" placeholder="Notes about this deal..." style="resize:vertical;height:80px"></textarea>
- <div class="modal-btns">
- <button class="modal-btn secondary" onclick="closeDealModal()">Cancel</button>
- <button class="modal-btn secondary" id="deal-delete-btn" onclick="deleteDeal()" style="display:none;background:#ef4444">Delete</button>
- <button class="modal-btn primary" onclick="saveDeal()">Save deal</button>
  </div>
  </div>
  </div>
@@ -1758,6 +1721,7 @@ function openAddDealModal(){
  document.getElementById('deal-quantity').value='';
  document.getElementById('deal-stage').value='lead';
  document.getElementById('deal-notes').value='';
+ document.getElementById('deal-closure-month').value='';
  document.getElementById('deal-modal').classList.add('open');
  setTimeout(()=>document.getElementById('deal-name').focus(),100);
 }
@@ -1776,6 +1740,7 @@ function openEditDeal(id){
  document.getElementById('deal-quantity').value=d.quantity||'';
  document.getElementById('deal-stage').value=d.stage||'lead';
  document.getElementById('deal-notes').value=d.notes||'';
+ document.getElementById('deal-closure-month').value=d.closureMonth||'';
  document.getElementById('deal-modal').classList.add('open');
 }
 
@@ -1798,6 +1763,7 @@ function saveDeal(){
  quantity: parseFloat(document.getElementById('deal-quantity').value)||0,
  stage: document.getElementById('deal-stage').value||'lead',
  notes: document.getElementById('deal-notes').value.trim(),
+ closureMonth: document.getElementById('deal-closure-month').value||'',
  created: editingDealId ? (deals.find(x=>String(x.id)===String(editingDealId))?.created || new Date().toISOString()) : new Date().toISOString(),
  updated: new Date().toISOString()
  };
