@@ -166,6 +166,24 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,'Helvetica Neue'
 .isend:active{opacity:.85;transform:scale(.96)}
 .inote{width:40px;height:40px;border-radius:50%;background:#f59e0b;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
 .inote:active{opacity:.85;transform:scale(.96)}
+.icam{width:40px;height:40px;border-radius:50%;background:#8b5cf6;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;box-shadow:0 2px 4px rgba(0,0,0,.15);padding:0}
+.icam:active{opacity:.85;transform:scale(.96)}
+
+/* Card-style note (visiting card with photo) */
+.ncard.ncard-photo{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.ncard-img{width:100%;height:auto;max-height:220px;object-fit:cover;display:block;background:#f0f0f0;cursor:zoom-in}
+.ncard.ncard-photo .ncard-body{padding:10px 14px}
+.ncard-tag{font-size:10px;font-weight:700;color:#8b5cf6;letter-spacing:.08em;margin-bottom:2px}
+
+/* Full-screen card viewer */
+#card-viewer{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:200;display:none;align-items:center;justify-content:center;flex-direction:column;padding:20px;box-sizing:border-box}
+#card-viewer.open{display:flex}
+#card-viewer img{max-width:100%;max-height:80vh;object-fit:contain;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
+#card-viewer .cv-label{color:#fff;font-size:15px;font-weight:600;margin-top:14px;text-align:center;max-width:100%;word-wrap:break-word}
+#card-viewer .cv-actions{display:flex;gap:10px;margin-top:18px}
+#card-viewer .cv-btn{padding:9px 18px;border-radius:8px;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:14px;cursor:pointer;font-weight:500}
+#card-viewer .cv-btn:active{opacity:.7}
+#card-viewer .cv-close{position:absolute;top:14px;right:14px;width:40px;height:40px;border-radius:50%;background:rgba(255,255,255,.15);color:#fff;border:none;font-size:22px;line-height:1;cursor:pointer}
 
 /* Quick-save bottom sheet (long-press send) */
 #quick-save-sheet{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;justify-content:flex-end;pointer-events:none}
@@ -430,6 +448,9 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="iwrap">
  <textarea id="msg-input" rows="1" placeholder="Message"></textarea>
  </div>
+ <button class="icam" onclick="scanCard()" title="Scan visiting card" aria-label="Scan visiting card">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+ </button>
  <button class="inote" onclick="saveAsNote()" title="Save as note" aria-label="Save as note">
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
  </button>
@@ -437,6 +458,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M22 2L11 13M22 2L15 22l-4-9-9-4 20-7z" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
  </button>
  </div>
+ <input type="file" id="card-camera-input" accept="image/*" capture="environment" style="display:none"/>
 
  <!-- Edit task modal -->
  <div class="modal-bg" id="edit-modal">
@@ -566,6 +588,31 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
 
  <!-- Hidden import input -->
  <input type="file" id="import-input" accept=".json,application/json" style="display:none"/>
+
+ <!-- Card label prompt modal -->
+ <div class="modal-bg" id="card-label-modal">
+ <div class="modal">
+ <h3>Name this card</h3>
+ <p style="margin-bottom:12px;font-size:13px;color:#666">Add a name or company so you can find it later.</p>
+ <label>Label</label>
+ <input type="text" id="card-label-input" placeholder="e.g. Ashish - MP dealer" autocomplete="off"/>
+ <div class="modal-btns">
+ <button class="modal-btn secondary" onclick="cancelCardLabel()">Cancel</button>
+ <button class="modal-btn primary" onclick="saveCardWithLabel()">Save card</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Full-screen card viewer -->
+ <div id="card-viewer">
+ <button class="cv-close" onclick="closeCardViewer()">X</button>
+ <img id="card-viewer-img" src="" alt="card"/>
+ <div class="cv-label" id="card-viewer-label"></div>
+ <div class="cv-actions">
+ <button class="cv-btn" onclick="renameCardFromViewer()">Rename</button>
+ <button class="cv-btn" onclick="deleteCardFromViewer()" style="background:rgba(239,68,68,.7)">Delete</button>
+ </div>
+ </div>
 </div>
 
 <script>
@@ -1047,6 +1094,148 @@ function saveAsNote(){
  });
 }
 
+/* --- Visiting card scanner --- */
+function scanCard(){
+ // Trigger the file input which will open the camera on mobile
+ document.getElementById('card-camera-input').click();
+}
+
+// Compress and resize an image file to keep storage small
+function processCardImage(file, callback){
+ const reader=new FileReader();
+ reader.onload=ev=>{
+ const img=new Image();
+ img.onload=()=>{
+ // Resize to max 1200px on the long edge
+ const MAX=1200;
+ let w=img.width, h=img.height;
+ if(w>MAX || h>MAX){
+ if(w>h){ h=Math.round(h*(MAX/w)); w=MAX; }
+ else { w=Math.round(w*(MAX/h)); h=MAX; }
+ }
+ const canvas=document.createElement('canvas');
+ canvas.width=w; canvas.height=h;
+ const ctx=canvas.getContext('2d');
+ ctx.drawImage(img, 0, 0, w, h);
+ // Encode as JPEG ~75% quality for good size/quality balance
+ const dataUrl=canvas.toDataURL('image/jpeg', 0.78);
+ callback(dataUrl);
+ };
+ img.onerror=()=>callback(null);
+ img.src=ev.target.result;
+ };
+ reader.onerror=()=>callback(null);
+ reader.readAsDataURL(file);
+}
+
+// When a photo is selected/captured
+document.getElementById('card-camera-input').addEventListener('change', function(e){
+ const file=e.target.files && e.target.files[0];
+ if(!file) return;
+ // Reset input so same file can be reselected later
+ e.target.value='';
+
+ showToast('Processing card...');
+ processCardImage(file, (dataUrl)=>{
+ if(!dataUrl){
+ showToast('Could not read photo');
+ return;
+ }
+ // Ask for a label
+ promptCardLabel(dataUrl);
+ });
+});
+
+// Prompt for card label using the existing edit-note style modal pattern
+let _pendingCardImage=null;
+function promptCardLabel(dataUrl){
+ _pendingCardImage=dataUrl;
+ const inputEl=document.getElementById('card-label-input');
+ inputEl.value='';
+ document.getElementById('card-label-modal').classList.add('open');
+ setTimeout(()=>inputEl.focus(),100);
+}
+
+function cancelCardLabel(){
+ document.getElementById('card-label-modal').classList.remove('open');
+ _pendingCardImage=null;
+}
+
+function saveCardWithLabel(){
+ const label=document.getElementById('card-label-input').value.trim();
+ const dataUrl=_pendingCardImage;
+ if(!dataUrl) return;
+ const note={
+ text: label || 'Untitled card',
+ image: dataUrl,
+ kind: 'card',
+ id: uid(),
+ at: new Date().toISOString()
+ };
+ notes.push(note);
+ try {
+ saveAll();
+ } catch(err) {
+ // Storage quota exceeded
+ notes.pop();
+ showToast('Storage full - export old data first');
+ cancelCardLabel();
+ return;
+ }
+ updateSub();
+ cancelCardLabel();
+ document.getElementById('card-label-input').value='';
+ _pendingCardImage=null;
+ if(currentTab==='notes') renderNotes();
+ // Confirm in chat
+ if(currentTab==='chat'){
+ addMsg(`Saved card: <b>${esc(note.text)}</b><div style="margin-top:6px"><img src="${attr(dataUrl)}" style="max-width:160px;max-height:100px;border-radius:6px;border:1px solid #ddd"/></div><div class="qrw" style="margin-top:8px"><div class="qr g" onclick="switchTab('notes');rmQR()">View notes</div></div>`);
+ } else {
+ showToast(`Card saved: ${note.text}`);
+ }
+}
+
+/* --- Card viewer (full-screen) --- */
+let _viewerCardId=null;
+function openCardViewer(id){
+ const n=notes.find(x=>String(x.id)===String(id));
+ if(!n||!n.image) return;
+ _viewerCardId=id;
+ document.getElementById('card-viewer-img').src=n.image;
+ document.getElementById('card-viewer-label').textContent=n.text||'Untitled card';
+ document.getElementById('card-viewer').classList.add('open');
+}
+
+function closeCardViewer(){
+ document.getElementById('card-viewer').classList.remove('open');
+ document.getElementById('card-viewer-img').src='';
+ _viewerCardId=null;
+}
+
+function renameCardFromViewer(){
+ if(!_viewerCardId) return;
+ const id=_viewerCardId;
+ closeCardViewer();
+ setTimeout(()=>openEditNote(id),150);
+}
+
+function deleteCardFromViewer(){
+ if(!_viewerCardId) return;
+ const id=_viewerCardId;
+ closeCardViewer();
+ setTimeout(()=>{
+ const idx=notes.findIndex(x=>String(x.id)===String(id));
+ if(idx<0) return;
+ const removed=notes.splice(idx,1)[0];
+ saveAll();updateSub();
+ if(currentTab==='notes') renderNotes();
+ showToast('Card deleted',()=>{
+ notes.splice(idx,0,removed);
+ saveAll();updateSub();
+ if(currentTab==='notes') renderNotes();
+ });
+ },150);
+}
 
 function handleReply(value,label){
  if(step===null){
@@ -1967,11 +2156,28 @@ function renderNotes(){
  sorted.forEach(n=>{
  const card=document.createElement('div');
  card.className='ncard';
+ if(n.kind==='card') card.classList.add('ncard-photo');
  const when=n.at?new Date(n.at):new Date();
  const wt=when.toLocaleDateString('en',{month:'short',day:'numeric'})+' . '+String(when.getHours()).padStart(2,'0')+':'+String(when.getMinutes()).padStart(2,'0');
+ if(n.kind==='card' && n.image){
+ // Card-style note with photo
+ const label=n.text||'Untitled card';
+ card.innerHTML=`
+ <img class="ncard-img" src="${attr(n.image)}" alt="card" loading="lazy"/>
+ <div class="ncard-body">
+ <div class="ncard-tag">CARD</div>
+ <div class="ncard-text">${esc(label)}</div>
+ <div class="ncard-time">${wt}</div>
+ </div>
+ <div class="ncard-del"></div>`;
+ card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
+ card.querySelector('.ncard-img').onclick=(e)=>{e.stopPropagation();openCardViewer(n.id);};
+ card.addEventListener('click',()=>openEditNote(n.id));
+ } else {
  card.innerHTML=`<div class="ncard-body"><div class="ncard-text">${esc(n.text)}</div><div class="ncard-time">${wt}</div></div><div class="ncard-del"></div>`;
  card.querySelector('.ncard-del').onclick=(e)=>{e.stopPropagation();deleteNote(n.id);};
  card.addEventListener('click',()=>openEditNote(n.id));
+ }
  list.appendChild(card);
  });
 }
@@ -2316,6 +2522,11 @@ document.getElementById('import-input').addEventListener('change', e=>{
  e.target.value=''; // reset
  };
  reader.readAsText(file);
+});
+
+// Card label - Enter key saves
+document.getElementById('card-label-input').addEventListener('keydown', e=>{
+ if(e.key==='Enter'){e.preventDefault();saveCardWithLabel();}
 });
 
 /* Calendar quick-add */
@@ -2982,7 +3193,7 @@ if(chatLog.length>0){
  setTimeout(()=>{addMsg("I'm <b>Drop</b>. Type or paste anything - tasks, info, ideas. I understand dates like \"call mom on Friday\" or \"buy milk tomorrow\".");},1000);
  setTimeout(()=>{addMsg("<b>Quick shortcuts:</b> add <code>!t</code> for today, <code>!w</code> for work, <code>!h</code> for high priority. Example: <code>buy groceries !t !p !h</code>");},2000);
  setTimeout(()=>{addMsg("Tap a task to mark done. Swipe right to snooze, swipe left to delete. Long-press to drag between dates.");},3000);
- setTimeout(()=>{addMsg("Tip: tap the <b>yellow note button</b> to save as a note, long-press the green send button for quick options. For voice input, use your keyboard's mic icon.");},4000);
+ setTimeout(()=>{addMsg("Tip: tap the <b>purple camera</b> to scan a visiting card, the <b>yellow note button</b> to save as a note, or long-press the green send for quick options.");},4000);
 }
 </script>
 </body>
