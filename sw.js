@@ -1,4 +1,4 @@
-const CACHE_NAME = 'drop-v12';
+const CACHE_NAME = 'drop-v13';
 const ASSETS = [
   './',
   './index.html',
