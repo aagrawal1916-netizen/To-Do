@@ -586,45 +586,106 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  </div>
  </div>
 
- <div class="tv" id="pricing-view" style="display:none">
- <div style="padding:15px;display:flex;flex-direction:column;gap:12px">
- <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #667eea">
- <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Model</div>
- <select id="pricing-model" onchange="showPricingResult()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <div class="tv" id="pricing-view" style="display:none;flex-direction:column;overflow-y:auto">
+ <div id="pricing-password-screen" style="display:flex;align-items:center;justify-content:center;min-height:100%;padding:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%)">
+ <div style="background:#fff;padding:30px;border-radius:12px;text-align:center;width:100%;max-width:350px">
+ <div style="font-size:40px;margin-bottom:15px">🔒</div>
+ <h3 style="font-size:18px;margin-bottom:8px;color:#333">Protected</h3>
+ <p style="color:#666;font-size:13px;margin-bottom:20px">Enter password for pricing</p>
+ <input type="password" id="pricing-pwd" placeholder="••••" maxlength="4" inputmode="numeric" style="width:100%;padding:12px;border:2px solid #ddd;border-radius:8px;font-size:18px;text-align:center;letter-spacing:4px;margin-bottom:10px;font-family:monospace">
+ <button onclick="checkPricingPassword()" style="width:100%;padding:12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">Unlock</button>
+ <div id="pricing-err" style="color:#e74c3c;margin-top:10px;font-size:12px;display:none">Incorrect password</div>
+ </div>
+ </div>
+
+ <div id="pricing-app" style="display:none;padding:15px;padding-bottom:80px">
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Category</div>
+ <select id="pricing-cat" onchange="pricingUpdateModels()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <option value="">All Categories</option>
+ <option value="Prime">Prime Series</option>
+ <option value="Advance">Advance Series</option>
+ <option value="Pro">Pro Series</option>
+ <option value="Neo">Neo Series</option>
+ </select>
+ </div>
+
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Search Models</div>
+ <input type="text" id="pricing-search" placeholder="Search features..." onkeyup="pricingFilterModels()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ </div>
+
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Model</div>
+ <select id="pricing-model" onchange="pricingShow()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
  <option value="">Select a model...</option>
  </select>
  </div>
- <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #667eea">
- <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Quantity</div>
- <input type="number" id="pricing-qty" value="1" min="1" max="100" onchange="showPricingResult()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-bottom:15px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Quantity</div>
+ <input type="number" id="pricing-qty" value="1" min="1" max="100" onchange="pricingShow()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
  </div>
+
  <div id="pricing-results" style="display:none">
- <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #10b981">
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #10b981;margin-bottom:12px">
  <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Dealer Price (Per Unit)</div>
- <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-unit">-</div>
+ <div style="font-size:20px;font-weight:700;color:#333;font-family:monospace" id="pricing-unit">-</div>
+ <div style="font-size:12px;color:#999;margin-top:4px" id="pricing-disc">-</div>
  </div>
- <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #f59e0b;margin-top:10px">
+
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:12px">
  <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Min End User Price</div>
- <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-minuser">-</div>
+ <div style="font-size:20px;font-weight:700;color:#333;font-family:monospace" id="pricing-minuser">-</div>
  </div>
- <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #ef4444;margin-top:10px">
+
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #ef4444;margin-bottom:12px">
  <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Your Margin (Per Unit)</div>
- <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-margin">-</div>
+ <div style="font-size:20px;font-weight:700;color:#333;font-family:monospace" id="pricing-margin">-</div>
  </div>
- <div style="background:#fff;padding:15px;border-radius:8px;margin-top:10px">
- <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Order Summary</div>
- <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:10px;padding:8px 0;border-bottom:1px solid #eee">
+
+ <div style="background:#e8f5e9;padding:15px;border-radius:8px;margin-bottom:12px">
+ <div style="font-size:14px;font-weight:600;color:#2e7d32;margin-bottom:12px">Order Summary</div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
  <span>Equipment (Total)</span>
  <strong id="pricing-total" style="font-family:monospace">-</strong>
  </div>
- <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding:8px 0;border-bottom:1px solid #eee">
+ <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
  <span>Freight (2%)</span>
  <strong id="pricing-freight" style="font-family:monospace">-</strong>
  </div>
- <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding:8px 0">
- <span style="font-weight:600">Grand Total</span>
- <strong id="pricing-grand" style="font-family:monospace;color:#10b981;font-size:15px">-</strong>
+ <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
+ <span>Insurance (1%)</span>
+ <strong id="pricing-insurance" style="font-family:monospace">-</strong>
  </div>
+ <div style="display:flex;justify-content:space-between;font-size:14px;padding:10px 0;border-top:2px solid #2e7d32;margin-top:8px">
+ <span style="font-weight:600">Grand Total</span>
+ <strong id="pricing-grand" style="font-family:monospace;color:#2e7d32">-</strong>
+ </div>
+ </div>
+
+ <div id="pricing-config" style="display:none;background:#fff;padding:15px;border-radius:8px;margin-bottom:12px;border-left:4px solid #667eea">
+ <div style="font-size:13px;font-weight:600;color:#667eea;margin-bottom:10px" id="pricing-config-title">Configuration</div>
+ <div style="font-size:12px;line-height:1.6;color:#333;white-space:pre-wrap;font-family:monospace" id="pricing-config-text"></div>
+ </div>
+
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-bottom:12px">
+ <div style="font-size:14px;font-weight:600;margin-bottom:12px">All Models</div>
+ <div style="overflow-x:auto">
+ <table style="width:100%;font-size:12px;border-collapse:collapse;min-width:600px">
+ <thead>
+ <tr style="background:#333;color:#fff">
+ <th style="padding:8px;text-align:left;text-transform:uppercase;font-size:11px;font-weight:600">Model</th>
+ <th style="padding:8px;text-align:left;text-transform:uppercase;font-size:11px;font-weight:600">Description</th>
+ <th style="padding:8px;text-align:right;text-transform:uppercase;font-size:11px;font-weight:600">List</th>
+ <th style="padding:8px;text-align:right;text-transform:uppercase;font-size:11px;font-weight:600">Min User</th>
+ <th style="padding:8px;text-align:right;text-transform:uppercase;font-size:11px;font-weight:600">10+ Deal</th>
+ </tr>
+ </thead>
+ <tbody id="pricing-table"></tbody>
+ </table>
+ </div>
+ <div style="text-align:center;color:#999;font-size:11px;margin-top:8px">← Swipe to see more →</div>
  </div>
  </div>
  </div>
@@ -1916,25 +1977,25 @@ function deleteDealFromModal(){
  });
 }
 
-// Pricing Tool Data
+// Pricing Tool Data with Config
 const pricingData={
- 'PRIME01':{name:'PRIME01',desc:'Basic (W/O Support Arm)',list:600000,minUser:561000,disc:[15,20,25],prices:[510000,480000,450000]},
- 'PRIME02':{name:'PRIME02',desc:'+ NIV, Loops & Trends',list:655000,minUser:576400,disc:[20,25,30],prices:[524000,491250,458500]},
- 'PRIME03':{name:'PRIME03',desc:'+ High Flow O2',list:710000,minUser:585750,disc:[25,30,35],prices:[532500,497000,461500]},
- 'PRIME04':{name:'PRIME04',desc:'+ DualPAP, APRV',list:780000,minUser:643500,disc:[25,35,40],prices:[585000,507000,468000]},
- 'PRIME05':{name:'PRIME05',desc:'+ SmartVent, Smart Lung',list:900000,minUser:742500,disc:[25,40,45],prices:[675000,540000,495000]},
- 'ADV01':{name:'ADV01',desc:'4Y Warranty, Dual Battery',list:1050000,minUser:866250,disc:[25,40,40],prices:[787500,630000,630000]},
- 'ADV02':{name:'ADV02',desc:'+ PRVC, VS, Multi-Preset',list:1245000,minUser:1027125,disc:[25,40,40],prices:[933750,747000,747000]},
- 'ADV03':{name:'ADV03',desc:'+ Advanced Tools',list:1420000,minUser:1171500,disc:[25,40,45],prices:[1065000,852000,781000]},
- 'PRO01':{name:'PRO01',desc:'DC Input, Nurse Call',list:2400000,minUser:1980000,disc:[25,40,50],prices:[1800000,1440000,1200000]},
- 'PRO02':{name:'PRO02',desc:'+ Neonatal',list:2500000,minUser:2062500,disc:[25,40,50],prices:[1875000,1500000,1250000]},
- 'PRO03':{name:'PRO03',desc:'+ SPO2 + ETCO2',list:2800000,minUser:2310000,disc:[25,40,50],prices:[2100000,1680000,1400000]},
- 'PRO04':{name:'PRO04',desc:'PRO01 + SPO2 + ETCO2',list:2680000,minUser:2211000,disc:[25,40,50],prices:[2010000,1608000,1340000]},
- 'NEO01':{name:'NEO01',desc:'PRIME01 + Neonatal',list:700000,minUser:616000,disc:[20,22,25],prices:[560000,546000,525000]},
- 'NEO02':{name:'NEO02',desc:'PRIME03 + Neonatal',list:800000,minUser:660000,disc:[25,30,32],prices:[600000,560000,544000]},
- 'NEO03':{name:'NEO03',desc:'PRIME04 + Neonatal',list:920000,minUser:759000,disc:[25,30,40],prices:[690000,644000,552000]},
- 'NEO04':{name:'NEO04',desc:'+ PRVC, VS',list:1150000,minUser:948750,disc:[25,30,40],prices:[862500,805000,690000]},
- 'NEO05':{name:'NEO05',desc:'+ SPO2 + ETCO2',list:1450000,minUser:1196250,disc:[25,30,40],prices:[1087500,1015000,870000]}
+ 'PRIME01':{cat:'Prime',name:'PRIME01',desc:'Basic (W/O Support Arm)',list:600000,minUser:561000,disc:[15,20,25],prices:[510000,480000,450000],config:'PRIME (Basics w/o support arm)\n\n• Adult-Paediatric Ventilation\n• 15" color touch screen display\n• RS232\n• Inbuilt Nebulizer\n• eUV Filter\n• Sterilizable Breathing Cassette\n• Dark-Light Theme\n• V-A/C Mode • P-A/C Mode\n• V-SIMV Mode • P-SIMV Mode\n• O2 Sensor MOX-3\n• Li-Ion Battery\n• Trolley'},
+ 'PRIME02':{cat:'Prime',name:'PRIME02',desc:'+ NIV, Loops & Trends',list:655000,minUser:576400,disc:[20,25,30],prices:[524000,491250,458500],config:'PRIME + NIV and Loops\n\n• All PRIME01 features\n• Loops & Trends\n• Non-Invasive Ventilation (NIV)'},
+ 'PRIME03':{cat:'Prime',name:'PRIME03',desc:'+ High Flow O2',list:710000,minUser:585750,disc:[25,30,35],prices:[532500,497000,461500],config:'PRIME + High Flow\n\n• All PRIME02 features\n• High Flow O2 Therapy'},
+ 'PRIME04':{cat:'Prime',name:'PRIME04',desc:'+ DualPAP, APRV',list:780000,minUser:643500,disc:[25,35,40],prices:[585000,507000,468000],config:'PRIME + Advanced Modes\n\n• All PRIME03 features\n• DualPAP\n• APRV'},
+ 'PRIME05':{cat:'Prime',name:'PRIME05',desc:'+ SmartVent',list:900000,minUser:742500,disc:[25,40,45],prices:[675000,540000,495000],config:'PRIME Full Featured\n\n• All PRIME04 features\n• SmartVent\n• Smart Lung\n• Screen Customization'},
+ 'ADV01':{cat:'Advance',name:'ADV01',desc:'Premium - Dual Battery',list:1050000,minUser:866250,disc:[25,40,40],prices:[787500,630000,630000],config:'ADVANCE Premium\n\n• All PRIME05 features\n• Dual Battery\n• Support Arm\n• 5 Year Warranty\n• HDMI Display'},
+ 'ADV02':{cat:'Advance',name:'ADV02',desc:'+ PRVC, VS',list:1245000,minUser:1027125,disc:[25,40,40],prices:[933750,747000,747000],config:'ADVANCE Advanced Modes\n\n• All ADV01 features\n• PRVC Mode\n• VS Mode\n• Multi-Preset'},
+ 'ADV03':{cat:'Advance',name:'ADV03',desc:'+ PV Tool',list:1420000,minUser:1171500,disc:[25,40,45],prices:[1065000,852000,781000],config:'ADVANCE Complete\n\n• All ADV02 features\n• PV Tool\n• Weaning & NIF\n• Advanced Calculations'},
+ 'PRO01':{cat:'Pro',name:'PRO01',desc:'Professional - DC Input',list:2400000,minUser:1980000,disc:[25,40,50],prices:[1800000,1440000,1200000],config:'PRO Professional Grade\n\n• All ADV03 features\n• DC Input\n• Nurse Call System\n• 2 Batteries\n• NIV Mask'},
+ 'PRO02':{cat:'Pro',name:'PRO02',desc:'+ Neonatal',list:2500000,minUser:2062500,disc:[25,40,50],prices:[1875000,1500000,1250000],config:'PRO with Neonatal\n\n• All PRO01 features\n• Neonatal Ventilation\n• NCPAP\n• Neonatal Kit'},
+ 'PRO03':{cat:'Pro',name:'PRO03',desc:'+ Monitoring',list:2800000,minUser:2310000,disc:[25,40,50],prices:[2100000,1680000,1400000],config:'PRO Complete Monitoring\n\n• All PRO02 features\n• SpO2 Port & Accessories\n• EtCO2 Port & Accessories'},
+ 'PRO04':{cat:'Pro',name:'PRO04',desc:'+ Monitoring (No Neo)',list:2680000,minUser:2211000,disc:[25,40,50],prices:[2010000,1608000,1340000],config:'PRO without Neonatal\n\n• All PRO01 features\n• SpO2 Accessories\n• EtCO2 Accessories'},
+ 'NEO01':{cat:'Neo',name:'NEO01',desc:'Neonatal Basic',list:700000,minUser:616000,disc:[20,22,25],prices:[560000,546000,525000],config:'NEO Basic Neonatal\n\n• 15" Touch Screen\n• Neonatal Ventilation\n• NCPAP\n• Neonatal Circuit'},
+ 'NEO02':{cat:'Neo',name:'NEO02',desc:'+ High Flow',list:800000,minUser:660000,disc:[25,30,32],prices:[600000,560000,544000],config:'NEO with High Flow\n\n• All NEO01 features\n• NIV\n• High Flow O2\n• Loops & Trends'},
+ 'NEO03':{cat:'Neo',name:'NEO03',desc:'+ Advanced',list:920000,minUser:759000,disc:[25,30,40],prices:[690000,644000,552000],config:'NEO Advanced\n\n• All NEO02 features\n• DualPAP\n• APRV'},
+ 'NEO04':{cat:'Neo',name:'NEO04',desc:'+ PRVC, VS',list:1150000,minUser:948750,disc:[25,30,40],prices:[862500,805000,690000],config:'NEO Full Features\n\n• All NEO03 features\n• PRVC\n• VS\n• Multi-Preset'},
+ 'NEO05':{cat:'Neo',name:'NEO05',desc:'+ Monitoring',list:1450000,minUser:1196250,disc:[25,30,40],prices:[1087500,1015000,870000],config:'NEO Complete\n\n• All NEO04 features\n• SpO2 Accessories\n• EtCO2 Accessories'}
 };
 
 function fmt(n){
@@ -1947,41 +2008,117 @@ function getTier(q){
  return q>=10?2:q>=5?1:0;
 }
 
+function checkPricingPassword(){
+ const pwd=document.getElementById('pricing-pwd').value;
+ if(pwd==='1144'){
+ document.getElementById('pricing-password-screen').style.display='none';
+ document.getElementById('pricing-app').style.display='block';
+ pricingInit();
+ }else{
+ document.getElementById('pricing-err').style.display='block';
+ document.getElementById('pricing-pwd').value='';
+ }
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ document.getElementById('pricing-pwd')?.addEventListener('keypress',(e)=>{
+ if(e.key==='Enter')checkPricingPassword();
+ });
+});
+
+function pricingInit(){
+ pricingUpdateModels();
+ pricingLoadTable();
+}
+
 function initPricing(){
+ pricingInit();
+}
+
+function pricingUpdateModels(){
+ const cat=document.getElementById('pricing-cat').value;
  const sel=document.getElementById('pricing-model');
+ sel.innerHTML='<option value="">Select a model...</option>';
  Object.keys(pricingData).forEach(key=>{
  const m=pricingData[key];
+ if(!cat||(m.cat||'')===cat){
  const opt=document.createElement('option');
  opt.value=key;
  opt.textContent=m.name+' - '+m.desc;
  sel.appendChild(opt);
+ }
  });
 }
 
-function showPricingResult(){
+function pricingFilterModels(){
+ const search=document.getElementById('pricing-search').value.toLowerCase();
+ const sel=document.getElementById('pricing-model');
+ sel.innerHTML='<option value="">Select a model...</option>';
+ Object.keys(pricingData).forEach(key=>{
+ const m=pricingData[key];
+ const text=(m.name+' '+m.desc+' '+(m.config||'')).toLowerCase();
+ if(!search||text.includes(search)){
+ const opt=document.createElement('option');
+ opt.value=key;
+ opt.textContent=m.name+' - '+m.desc;
+ sel.appendChild(opt);
+ }
+ });
+}
+
+function pricingShow(){
  const key=document.getElementById('pricing-model').value;
  const qty=parseInt(document.getElementById('pricing-qty').value)||1;
- 
  if(!key){
  document.getElementById('pricing-results').style.display='none';
+ document.getElementById('pricing-config').style.display='none';
  return;
  }
- 
  const m=pricingData[key];
  const tier=getTier(qty);
  const unit=m.prices[tier];
  const total=unit*qty;
  const margin=m.minUser-unit;
  const freight=Math.round(total*0.02);
- const grand=total+freight;
+ const insurance=Math.round(total*0.01);
+ const grand=total+freight+insurance;
  
  document.getElementById('pricing-unit').textContent=fmt(unit);
+ document.getElementById('pricing-disc').textContent=m.disc[tier]+'% OFF';
  document.getElementById('pricing-minuser').textContent=fmt(m.minUser);
  document.getElementById('pricing-margin').textContent=fmt(margin);
  document.getElementById('pricing-total').textContent=fmt(total);
  document.getElementById('pricing-freight').textContent=fmt(freight);
+ document.getElementById('pricing-insurance').textContent=fmt(insurance);
  document.getElementById('pricing-grand').textContent=fmt(grand);
+ document.getElementById('pricing-config-title').textContent=m.name;
+ document.getElementById('pricing-config-text').textContent=m.config||'';
  document.getElementById('pricing-results').style.display='block';
+ document.getElementById('pricing-config').style.display='block';
+}
+
+function pricingLoadTable(){
+ const tbody=document.getElementById('pricing-table');
+ tbody.innerHTML='';
+ Object.keys(pricingData).forEach(key=>{
+ const m=pricingData[key];
+ const tr=document.createElement('tr');
+ tr.style.cssText='border-bottom:1px solid #eee;cursor:pointer';
+ tr.onclick=()=>{
+ if(m.cat) document.getElementById('pricing-cat').value=m.cat;
+ pricingUpdateModels();
+ document.getElementById('pricing-model').value=key;
+ pricingShow();
+ };
+ tr.innerHTML=`
+ <td style="padding:8px"><strong>${m.name}</strong></td>
+ <td style="padding:8px;font-size:11px">${m.desc}</td>
+ <td style="padding:8px;text-align:right;font-family:monospace;font-size:11px">${fmt(m.list)}</td>
+ <td style="padding:8px;text-align:right;font-family:monospace;font-size:11px">${fmt(m.minUser)}</td>
+ <td style="padding:8px;text-align:right;font-family:monospace;font-size:11px">${fmt(m.prices[2])}</td>
+ `;
+ tbody.appendChild(tr);
+ });
 }
 
 // Wire up filter dropdowns to re-render
