@@ -634,6 +634,11 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div style="font-size:12px;color:#999;margin-top:4px" id="pricing-disc">-</div>
  </div>
 
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #3b82f6;margin-bottom:12px">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Final Unit Price (+ 5% GST)</div>
+ <div style="font-size:20px;font-weight:700;color:#333;font-family:monospace" id="pricing-final-unit">-</div>
+ </div>
+
  <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #f59e0b;margin-bottom:12px">
  <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Min End User Price</div>
  <div style="font-size:20px;font-weight:700;color:#333;font-family:monospace" id="pricing-minuser">-</div>
@@ -649,6 +654,10 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
  <span>Equipment (Total)</span>
  <strong id="pricing-total" style="font-family:monospace">-</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
+ <span>GST (5%)</span>
+ <strong id="pricing-gst" style="font-family:monospace">-</strong>
  </div>
  <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid rgba(0,0,0,0.1)">
  <span>Freight (2%)</span>
@@ -2077,17 +2086,21 @@ function pricingShow(){
  const m=pricingData[key];
  const tier=getTier(qty);
  const unit=m.prices[tier];
+ const unitWithGST=Math.round(unit*1.05);
  const total=unit*qty;
- const margin=m.minUser-unit;
- const freight=Math.round(total*0.02);
- const insurance=Math.round(total*0.01);
- const grand=total+freight+insurance;
+ const gst=Math.round(total*0.05);
+ const margin=m.minUser-unitWithGST;
+ const freight=Math.round((total+gst)*0.02);
+ const insurance=Math.round((total+gst)*0.01);
+ const grand=total+gst+freight+insurance;
  
  document.getElementById('pricing-unit').textContent=fmt(unit);
+ document.getElementById('pricing-final-unit').textContent=fmt(unitWithGST);
  document.getElementById('pricing-disc').textContent=m.disc[tier]+'% OFF';
  document.getElementById('pricing-minuser').textContent=fmt(m.minUser);
  document.getElementById('pricing-margin').textContent=fmt(margin);
  document.getElementById('pricing-total').textContent=fmt(total);
+ document.getElementById('pricing-gst').textContent=fmt(gst);
  document.getElementById('pricing-freight').textContent=fmt(freight);
  document.getElementById('pricing-insurance').textContent=fmt(insurance);
  document.getElementById('pricing-grand').textContent=fmt(grand);
