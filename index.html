@@ -508,8 +508,8 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div style="font-size:20px;font-weight:700" id="dashboard-pipeline">₹0</div>
  </div>
  </div>
- <div style="display:flex;gap:10px;margin-bottom:14px">
- <select id="deals-filter-stage" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap">
+ <select id="deals-filter-stage" style="flex:1;min-width:120px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
  <option value="">All stages</option>
  <option value="lead">Lead</option>
  <option value="contacted">Contacted</option>
@@ -518,7 +518,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <option value="won">Won</option>
  <option value="lost">Lost</option>
  </select>
- <select id="deals-filter-state" style="flex:1;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <select id="deals-filter-state" style="flex:1;min-width:120px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
  <option value="">All states</option>
  <option value="MP">MP</option>
  <option value="CG">CG</option>
@@ -531,7 +531,52 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <option value="Jharkhand">Jharkhand</option>
  <option value="Bihar">Bihar</option>
  </select>
- <button onclick="openAddDealModal()" style="width:44px;height:44px;border-radius:50%;background:#10b981;color:#fff;border:none;font-size:20px;cursor:pointer;flex-shrink:0">+</button>
+ <select id="deals-filter-month" style="flex:1;min-width:120px;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <option value="">All months</option>
+ <option value="2024-01">Jan 2024</option>
+ <option value="2024-02">Feb 2024</option>
+ <option value="2024-03">Mar 2024</option>
+ <option value="2024-04">Apr 2024</option>
+ <option value="2024-05">May 2024</option>
+ <option value="2024-06">Jun 2024</option>
+ <option value="2024-07">Jul 2024</option>
+ <option value="2024-08">Aug 2024</option>
+ <option value="2024-09">Sep 2024</option>
+ <option value="2024-10">Oct 2024</option>
+ <option value="2024-11">Nov 2024</option>
+ <option value="2024-12">Dec 2024</option>
+ <option value="2025-01">Jan 2025</option>
+ <option value="2025-02">Feb 2025</option>
+ <option value="2025-03">Mar 2025</option>
+ <option value="2025-04">Apr 2025</option>
+ <option value="2025-05">May 2025</option>
+ <option value="2025-06">Jun 2025</option>
+ <option value="2025-07">Jul 2025</option>
+ <option value="2025-08">Aug 2025</option>
+ <option value="2025-09">Sep 2025</option>
+ <option value="2025-10">Oct 2025</option>
+ <option value="2025-11">Nov 2025</option>
+ <option value="2025-12">Dec 2025</option>
+ <option value="2026-01">Jan 2026</option>
+ <option value="2026-02">Feb 2026</option>
+ <option value="2026-03">Mar 2026</option>
+ <option value="2026-04">Apr 2026</option>
+ <option value="2026-05">May 2026</option>
+ <option value="2026-06">Jun 2026</option>
+ <option value="2026-07">Jul 2026</option>
+ <option value="2026-08">Aug 2026</option>
+ <option value="2026-09">Sep 2026</option>
+ <option value="2026-10">Oct 2026</option>
+ <option value="2026-11">Nov 2026</option>
+ <option value="2026-12">Dec 2026</option>
+ <option value="2027-01">Jan 2027</option>
+ <option value="2027-02">Feb 2027</option>
+ <option value="2027-03">Mar 2027</option>
+ <option value="2027-04">Apr 2027</option>
+ <option value="2027-05">May 2027</option>
+ <option value="2027-06">Jun 2027</option>
+ </select>
+ <button onclick="openAddDealModal()" style="width:44px;height:44px;border-radius:50%;background:#10b981;color:#fff;border:none;font-size:20px;cursor:pointer;flex-shrink:0;min-width:44px">+</button>
  </div>
  <div id="deals-list" style="display:flex;flex-direction:column;gap:10px"></div>
  </div>
@@ -1659,10 +1704,12 @@ function renderDeals(){
  list.innerHTML='';
  const stageFilter=document.getElementById('deals-filter-stage').value;
  const stateFilter=document.getElementById('deals-filter-state').value;
+ const monthFilter=document.getElementById('deals-filter-month').value;
  
  let filtered=deals;
  if(stageFilter) filtered=filtered.filter(d=>d.stage===stageFilter);
  if(stateFilter) filtered=filtered.filter(d=>d.state===stateFilter);
+ if(monthFilter) filtered=filtered.filter(d=>d.closureMonth===monthFilter);
  
  // Dashboard metrics (unfiltered, show overall picture)
  const totalPipeline=deals.filter(d=>d.stage!=='won'&&d.stage!=='lost').reduce((sum,d)=>sum+(d.value||0),0);
@@ -1824,6 +1871,7 @@ function deleteDealFromModal(){
 // Wire up filter dropdowns to re-render
 document.getElementById('deals-filter-stage')?.addEventListener('change',renderDeals);
 document.getElementById('deals-filter-state')?.addEventListener('change',renderDeals);
+document.getElementById('deals-filter-month')?.addEventListener('change',renderDeals);
 
 function handleReply(value,label){
  if(step===null){
