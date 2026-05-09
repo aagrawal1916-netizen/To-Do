@@ -449,6 +449,10 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="10"/></svg>
  <span class="tab-label">Deals</span>
  </div>
+ <div class="tab-item" id="tab-pricing" onclick="switchTab('pricing')" title="Pricing">
+ <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1v22M17 5H9.5a4.5 4.5 0 00-4.5 4.5v4a4.5 4.5 0 004.5 4.5H17"/></svg>
+ <span class="tab-label">Pricing</span>
+ </div>
  </div>
 
  <div class="chat-bg" id="chat-view"></div>
@@ -579,6 +583,50 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <button onclick="openAddDealModal()" style="width:44px;height:44px;border-radius:50%;background:#10b981;color:#fff;border:none;font-size:20px;cursor:pointer;flex-shrink:0;min-width:44px">+</button>
  </div>
  <div id="deals-list" style="display:flex;flex-direction:column;gap:10px"></div>
+ </div>
+ </div>
+
+ <div class="tv" id="pricing-view" style="display:none">
+ <div style="padding:15px;display:flex;flex-direction:column;gap:12px">
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Model</div>
+ <select id="pricing-model" onchange="showPricingResult()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ <option value="">Select a model...</option>
+ </select>
+ </div>
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #667eea">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Quantity</div>
+ <input type="number" id="pricing-qty" value="1" min="1" max="100" onchange="showPricingResult()" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;font-size:14px">
+ </div>
+ <div id="pricing-results" style="display:none">
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #10b981">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Dealer Price (Per Unit)</div>
+ <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-unit">-</div>
+ </div>
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #f59e0b;margin-top:10px">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Min End User Price</div>
+ <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-minuser">-</div>
+ </div>
+ <div style="background:#fff;padding:15px;border-radius:8px;border-left:4px solid #ef4444;margin-top:10px">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Your Margin (Per Unit)</div>
+ <div style="font-size:22px;font-weight:700;color:#333;font-family:monospace" id="pricing-margin">-</div>
+ </div>
+ <div style="background:#fff;padding:15px;border-radius:8px;margin-top:10px">
+ <div style="font-size:12px;color:#666;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;font-weight:600">Order Summary</div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:10px;padding:8px 0;border-bottom:1px solid #eee">
+ <span>Equipment (Total)</span>
+ <strong id="pricing-total" style="font-family:monospace">-</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding:8px 0;border-bottom:1px solid #eee">
+ <span>Freight (2%)</span>
+ <strong id="pricing-freight" style="font-family:monospace">-</strong>
+ </div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:8px;padding:8px 0">
+ <span style="font-weight:600">Grand Total</span>
+ <strong id="pricing-grand" style="font-family:monospace;color:#10b981;font-size:15px">-</strong>
+ </div>
+ </div>
+ </div>
  </div>
  </div>
 
@@ -1868,6 +1916,74 @@ function deleteDealFromModal(){
  });
 }
 
+// Pricing Tool Data
+const pricingData={
+ 'PRIME01':{name:'PRIME01',desc:'Basic (W/O Support Arm)',list:600000,minUser:561000,disc:[15,20,25],prices:[510000,480000,450000]},
+ 'PRIME02':{name:'PRIME02',desc:'+ NIV, Loops & Trends',list:655000,minUser:576400,disc:[20,25,30],prices:[524000,491250,458500]},
+ 'PRIME03':{name:'PRIME03',desc:'+ High Flow O2',list:710000,minUser:585750,disc:[25,30,35],prices:[532500,497000,461500]},
+ 'PRIME04':{name:'PRIME04',desc:'+ DualPAP, APRV',list:780000,minUser:643500,disc:[25,35,40],prices:[585000,507000,468000]},
+ 'PRIME05':{name:'PRIME05',desc:'+ SmartVent, Smart Lung',list:900000,minUser:742500,disc:[25,40,45],prices:[675000,540000,495000]},
+ 'ADV01':{name:'ADV01',desc:'4Y Warranty, Dual Battery',list:1050000,minUser:866250,disc:[25,40,40],prices:[787500,630000,630000]},
+ 'ADV02':{name:'ADV02',desc:'+ PRVC, VS, Multi-Preset',list:1245000,minUser:1027125,disc:[25,40,40],prices:[933750,747000,747000]},
+ 'ADV03':{name:'ADV03',desc:'+ Advanced Tools',list:1420000,minUser:1171500,disc:[25,40,45],prices:[1065000,852000,781000]},
+ 'PRO01':{name:'PRO01',desc:'DC Input, Nurse Call',list:2400000,minUser:1980000,disc:[25,40,50],prices:[1800000,1440000,1200000]},
+ 'PRO02':{name:'PRO02',desc:'+ Neonatal',list:2500000,minUser:2062500,disc:[25,40,50],prices:[1875000,1500000,1250000]},
+ 'PRO03':{name:'PRO03',desc:'+ SPO2 + ETCO2',list:2800000,minUser:2310000,disc:[25,40,50],prices:[2100000,1680000,1400000]},
+ 'PRO04':{name:'PRO04',desc:'PRO01 + SPO2 + ETCO2',list:2680000,minUser:2211000,disc:[25,40,50],prices:[2010000,1608000,1340000]},
+ 'NEO01':{name:'NEO01',desc:'PRIME01 + Neonatal',list:700000,minUser:616000,disc:[20,22,25],prices:[560000,546000,525000]},
+ 'NEO02':{name:'NEO02',desc:'PRIME03 + Neonatal',list:800000,minUser:660000,disc:[25,30,32],prices:[600000,560000,544000]},
+ 'NEO03':{name:'NEO03',desc:'PRIME04 + Neonatal',list:920000,minUser:759000,disc:[25,30,40],prices:[690000,644000,552000]},
+ 'NEO04':{name:'NEO04',desc:'+ PRVC, VS',list:1150000,minUser:948750,disc:[25,30,40],prices:[862500,805000,690000]},
+ 'NEO05':{name:'NEO05',desc:'+ SPO2 + ETCO2',list:1450000,minUser:1196250,disc:[25,30,40],prices:[1087500,1015000,870000]}
+};
+
+function fmt(n){
+ if(n>=10000000)return'Rs '+(n/10000000).toFixed(1)+'Cr';
+ if(n>=100000)return'Rs '+(n/100000).toFixed(1)+'L';
+ return'Rs '+n.toLocaleString('en-IN');
+}
+
+function getTier(q){
+ return q>=10?2:q>=5?1:0;
+}
+
+function initPricing(){
+ const sel=document.getElementById('pricing-model');
+ Object.keys(pricingData).forEach(key=>{
+ const m=pricingData[key];
+ const opt=document.createElement('option');
+ opt.value=key;
+ opt.textContent=m.name+' - '+m.desc;
+ sel.appendChild(opt);
+ });
+}
+
+function showPricingResult(){
+ const key=document.getElementById('pricing-model').value;
+ const qty=parseInt(document.getElementById('pricing-qty').value)||1;
+ 
+ if(!key){
+ document.getElementById('pricing-results').style.display='none';
+ return;
+ }
+ 
+ const m=pricingData[key];
+ const tier=getTier(qty);
+ const unit=m.prices[tier];
+ const total=unit*qty;
+ const margin=m.minUser-unit;
+ const freight=Math.round(total*0.02);
+ const grand=total+freight;
+ 
+ document.getElementById('pricing-unit').textContent=fmt(unit);
+ document.getElementById('pricing-minuser').textContent=fmt(m.minUser);
+ document.getElementById('pricing-margin').textContent=fmt(margin);
+ document.getElementById('pricing-total').textContent=fmt(total);
+ document.getElementById('pricing-freight').textContent=fmt(freight);
+ document.getElementById('pricing-grand').textContent=fmt(grand);
+ document.getElementById('pricing-results').style.display='block';
+}
+
 // Wire up filter dropdowns to re-render
 document.getElementById('deals-filter-stage')?.addEventListener('change',renderDeals);
 document.getElementById('deals-filter-state')?.addEventListener('change',renderDeals);
@@ -2335,7 +2451,7 @@ function goBack(){
 }
 
 function switchTab(t){
- if(!['chat','tasks','notes','cal','cards','deals'].includes(t)) t='chat';
+ if(!['chat','tasks','notes','cal','cards','deals','pricing'].includes(t)) t='chat';
  currentTab=t;
  const app=document.getElementById('app');
  if(app.classList.contains('search-open')){
@@ -2346,7 +2462,7 @@ function switchTab(t){
  document.getElementById('search-view').style.display='none';
  document.getElementById('tabs').style.display='flex';
 
- ['chat','tasks','cal','notes','cards','deals'].forEach(name=>{
+ ['chat','tasks','cal','notes','cards','deals','pricing'].forEach(name=>{
  const tab=document.getElementById('tab-'+name);
  if(tab) tab.classList.toggle('active',t===name);
  });
@@ -2356,11 +2472,13 @@ function switchTab(t){
  document.getElementById('notes-view').style.display=t==='notes'?'flex':'none';
  document.getElementById('cards-view').style.display=t==='cards'?'flex':'none';
  document.getElementById('deals-view').style.display=t==='deals'?'flex':'none';
+ document.getElementById('pricing-view').style.display=t==='pricing'?'flex':'none';
  document.getElementById('input-bar').style.display=t==='chat'?'flex':'none';
  if(t==='tasks'){document.getElementById('tasks-view').style.flexDirection='column';renderTasks();}
  else if(t==='notes'){document.getElementById('notes-view').style.flexDirection='column';renderNotes();}
  else if(t==='cards'){document.getElementById('cards-view').style.flexDirection='column';renderCards();}
  else if(t==='deals'){document.getElementById('deals-view').style.flexDirection='column';renderDeals();}
+ else if(t==='pricing'){document.getElementById('pricing-view').style.flexDirection='column';initPricing();}
  else if(t==='cal'){document.getElementById('cal-view').style.flexDirection='column';renderCalendar();}
  else if(t==='chat'){chatEl.scrollTop=chatEl.scrollHeight;}
 }
