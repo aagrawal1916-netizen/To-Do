@@ -1711,11 +1711,11 @@ function renderDeals(){
  if(stateFilter) filtered=filtered.filter(d=>d.state===stateFilter);
  if(monthFilter) filtered=filtered.filter(d=>d.closureMonth===monthFilter);
  
- // Dashboard metrics (unfiltered, show overall picture)
- const totalPipeline=deals.filter(d=>d.stage!=='won'&&d.stage!=='lost').reduce((sum,d)=>sum+(d.value||0),0);
- const totalDeals=deals.length;
- const wonDeals=deals.filter(d=>d.stage==='won').length;
- const wonValue=deals.filter(d=>d.stage==='won').reduce((sum,d)=>sum+(d.value||0),0);
+ // Dashboard metrics (use filtered data when filters are active)
+ const totalPipeline=filtered.filter(d=>d.stage!=='won'&&d.stage!=='lost').reduce((sum,d)=>sum+(d.value||0),0);
+ const totalDeals=filtered.length;
+ const wonDeals=filtered.filter(d=>d.stage==='won').length;
+ const wonValue=filtered.filter(d=>d.stage==='won').reduce((sum,d)=>sum+(d.value||0),0);
  
  document.getElementById('dashboard-total').textContent='₹'+(totalPipeline/100000).toFixed(1)+'L';
  document.getElementById('dashboard-count').textContent=totalDeals;
