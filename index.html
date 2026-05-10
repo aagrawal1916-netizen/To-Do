@@ -408,6 +408,7 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <div class="menu-pop" id="menu-pop">
  <div class="menu-item" onclick="enableNotifications()"> <span id="notif-label">Enable reminders</span></div>
  <div class="menu-item" onclick="closeMenu();openSearch()">Search</div>
+ <div class="menu-item" onclick="closeMenu();openAlertSettings()">Alert settings</div>
  <div class="menu-divider"></div>
  <div class="menu-item" onclick="exportData()">Export backup</div>
  <div class="menu-item" onclick="importData()">Import backup</div>
@@ -728,6 +729,8 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <textarea id="edit-text" rows="2"></textarea>
  <label>Due date</label>
  <input type="date" id="edit-date"/>
+ <label>Reminder time</label>
+ <input type="time" id="edit-time" placeholder="09:00"/>
  <label>Category</label>
  <div class="modal-row">
  <div class="qr b" data-cat="work" onclick="pickEditCat(this)">Work</div>
@@ -755,6 +758,36 @@ mark{background:#fff3a3;color:#111;font-weight:600;padding:0 2px;border-radius:2
  <button class="modal-btn danger" onclick="deleteTaskFromEdit()">Delete</button>
  <button class="modal-btn secondary" onclick="closeEdit()">Cancel</button>
  <button class="modal-btn primary" onclick="saveEdit()">Save</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- Alert Settings modal -->
+ <div class="modal-bg" id="alert-settings-modal">
+ <div class="modal">
+ <h3>Alert Settings</h3>
+ <label>Sound alerts</label>
+ <div class="modal-row">
+ <div class="qr g" data-sound="on" onclick="pickAlertSound(this)">On</div>
+ <div class="qr gr" data-sound="off" onclick="pickAlertSound(this)">Off</div>
+ </div>
+ <label>Alert before time</label>
+ <div class="modal-row" style="flex-wrap:wrap">
+ <div class="qr gr" data-before="0" onclick="pickAlertBefore(this)">At time</div>
+ <div class="qr g" data-before="5" onclick="pickAlertBefore(this)">5 min</div>
+ <div class="qr g" data-before="15" onclick="pickAlertBefore(this)">15 min</div>
+ <div class="qr g" data-before="30" onclick="pickAlertBefore(this)">30 min</div>
+ <div class="qr g" data-before="60" onclick="pickAlertBefore(this)">1 hour</div>
+ </div>
+ <label>Check frequency</label>
+ <div class="modal-row">
+ <div class="qr g" data-freq="1" onclick="pickAlertFreq(this)">Every min</div>
+ <div class="qr g" data-freq="5" onclick="pickAlertFreq(this)">Every 5 min</div>
+ <div class="qr g" data-freq="15" onclick="pickAlertFreq(this)">Every 15 min</div>
+ </div>
+ <div class="modal-btns">
+ <button class="modal-btn secondary" onclick="closeAlertSettings()">Cancel</button>
+ <button class="modal-btn primary" onclick="saveAlertSettings()">Save</button>
  </div>
  </div>
  </div>
@@ -2729,8 +2762,12 @@ function renderTasks(){
  return;
  }
 
- // sort: tasks with due dates first by date, then by priority (high first), then no-date last
- filtered.sort(sortTasksForList);
+ // For done tasks, sort by completion time (latest first), otherwise by due date and priority
+ if(activeFilter==='done'){
+  filtered.sort((a,b)=>(b.doneAt||0)-(a.doneAt||0));
+ } else {
+  filtered.sort(sortTasksForList);
+ }
 
  const groups={};
  filtered.forEach(t=>{const k=t.due||'_nd';if(!groups[k])groups[k]=[];groups[k].push(t);});
@@ -2976,9 +3013,15 @@ function toggleDone(id){
  }
 
  t.done=!t.done;
+ // Track when task was completed
+ if(t.done){
+  t.doneAt=Date.now();
+ } else {
+  delete t.doneAt;
+ }
  saveAll();refreshCurrentView();
  if(!wasDone){
- showToast('Task completed',()=>{t.done=false;saveAll();refreshCurrentView();});
+ showToast('Task completed',()=>{t.done=false;delete t.doneAt;saveAll();refreshCurrentView();});
  }
 }
 
@@ -2988,6 +3031,7 @@ function openEdit(id){
  editingTaskId=id;
  document.getElementById('edit-text').value=t.text;
  document.getElementById('edit-date').value=t.due||'';
+ document.getElementById('edit-time').value=t.time||'09:00';
  document.getElementById('edit-state').value=t.state||'';
  document.querySelectorAll('#edit-modal [data-cat]').forEach(b=>{
  b.style.opacity=(b.dataset.cat===(t.category||''))?'1':'.4';
@@ -3022,6 +3066,7 @@ function saveEdit(){
  const t=tasks.find(x=>x.id===editingTaskId); if(!t)return;
  t.text=document.getElementById('edit-text').value.trim()||t.text;
  t.due=document.getElementById('edit-date').value||'';
+ t.time=document.getElementById('edit-time').value||'09:00';
  t.state=document.getElementById('edit-state').value||'';
  const catSel=document.querySelector('#edit-modal [data-cat][style*="opacity: 1"]');
  const prioSel=document.querySelector('#edit-modal [data-prio][style*="opacity: 1"]');
@@ -3033,6 +3078,7 @@ function saveEdit(){
  closeEdit();
  refreshCurrentView();
  showToast('Task updated');
+ scheduleTaskNotification(t);
 }
 
 function refreshCurrentView(){
@@ -3394,6 +3440,139 @@ function runNotificationCheck(){
  localStorage.setItem('td_notified_v1', JSON.stringify(notified));
 }
 
+function scheduleTaskNotification(task) {
+ if(!task.due || !task.time || typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+ const settings = getAlertSettings();
+ const taskDateTime = new Date(task.due + 'T' + task.time);
+ const alertTime = new Date(taskDateTime.getTime() - settings.alertBefore * 60000);
+ const now = new Date();
+ const delay = alertTime - now;
+ 
+ if(delay > 0 && delay < 86400000) {
+  setTimeout(() => {
+   const t = tasks.find(x => x.id === task.id);
+   if(t && !t.done) {
+    try {
+     new Notification('Drop Reminder', {
+      body: t.text + (settings.alertBefore > 0 ? ` (in ${settings.alertBefore} min)` : ''),
+      icon: 'icon-192.png',
+      tag: 'task_' + t.id,
+      requireInteraction: true
+     });
+     if(settings.sound) playAlertSound();
+    } catch(e) {}
+   }
+  }, delay);
+ }
+}
+
+function playAlertSound() {
+ try {
+  const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+  const oscillator = audioContext.createOscillator();
+  const gainNode = audioContext.createGain();
+  
+  oscillator.connect(gainNode);
+  gainNode.connect(audioContext.destination);
+  
+  oscillator.frequency.value = 800;
+  oscillator.type = 'sine';
+  gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.5);
+  
+  oscillator.start(audioContext.currentTime);
+  oscillator.stop(audioContext.currentTime + 0.5);
+ } catch(e) {}
+}
+
+/* Alert Settings Modal */
+function getAlertSettings() {
+ const defaults = {sound: true, alertBefore: 0, checkFreq: 1};
+ try {
+  return JSON.parse(localStorage.getItem('drop_alert_settings') || JSON.stringify(defaults));
+ } catch(e) {
+  return defaults;
+ }
+}
+
+function saveAlertSettingsData(settings) {
+ localStorage.setItem('drop_alert_settings', JSON.stringify(settings));
+ // Update check interval
+ if(window.notifCheckInterval) clearInterval(window.notifCheckInterval);
+ window.notifCheckInterval = setInterval(runNotificationCheck, settings.checkFreq * 60 * 1000);
+}
+
+function openAlertSettings() {
+ const settings = getAlertSettings();
+ 
+ document.querySelectorAll('#alert-settings-modal [data-sound]').forEach(b => {
+  const isSelected = (b.dataset.sound === 'on' && settings.sound) || (b.dataset.sound === 'off' && !settings.sound);
+  b.style.opacity = isSelected ? '1' : '.4';
+  b.style.background = isSelected ? '#e8f5e9' : '#fff';
+ });
+ 
+ document.querySelectorAll('#alert-settings-modal [data-before]').forEach(b => {
+  const isSelected = parseInt(b.dataset.before) === settings.alertBefore;
+  b.style.opacity = isSelected ? '1' : '.4';
+  b.style.background = isSelected ? '#e8f5e9' : '#fff';
+ });
+ 
+ document.querySelectorAll('#alert-settings-modal [data-freq]').forEach(b => {
+  const isSelected = parseInt(b.dataset.freq) === settings.checkFreq;
+  b.style.opacity = isSelected ? '1' : '.4';
+  b.style.background = isSelected ? '#e8f5e9' : '#fff';
+ });
+ 
+ document.getElementById('alert-settings-modal').classList.add('open');
+}
+
+function closeAlertSettings() {
+ document.getElementById('alert-settings-modal').classList.remove('open');
+}
+
+function pickAlertSound(el) {
+ document.querySelectorAll('#alert-settings-modal [data-sound]').forEach(b => {
+  b.style.opacity = '.4';
+  b.style.background = '#fff';
+ });
+ el.style.opacity = '1';
+ el.style.background = '#e8f5e9';
+}
+
+function pickAlertBefore(el) {
+ document.querySelectorAll('#alert-settings-modal [data-before]').forEach(b => {
+  b.style.opacity = '.4';
+  b.style.background = '#fff';
+ });
+ el.style.opacity = '1';
+ el.style.background = '#e8f5e9';
+}
+
+function pickAlertFreq(el) {
+ document.querySelectorAll('#alert-settings-modal [data-freq]').forEach(b => {
+  b.style.opacity = '.4';
+  b.style.background = '#fff';
+ });
+ el.style.opacity = '1';
+ el.style.background = '#e8f5e9';
+}
+
+function saveAlertSettings() {
+ const soundSel = document.querySelector('#alert-settings-modal [data-sound][style*="opacity: 1"]');
+ const beforeSel = document.querySelector('#alert-settings-modal [data-before][style*="opacity: 1"]');
+ const freqSel = document.querySelector('#alert-settings-modal [data-freq][style*="opacity: 1"]');
+ 
+ const settings = {
+  sound: soundSel ? soundSel.dataset.sound === 'on' : true,
+  alertBefore: beforeSel ? parseInt(beforeSel.dataset.before) : 0,
+  checkFreq: freqSel ? parseInt(freqSel.dataset.freq) : 1
+ };
+ 
+ saveAlertSettingsData(settings);
+ closeAlertSettings();
+ showToast('Alert settings saved!');
+}
+
 /* Phase 2: Quick-add shortcuts */
 // !w=work, !p=personal, !t=today, !tm=tomorrow, !h=high, !l=low, !m=medium, !d=daily, !wk=weekly, !mp/!mh/etc=state
 function parseShortcuts(text){
@@ -3524,6 +3703,7 @@ function saveQuickAdd(){
  const newTask={
  text: sh.text,
  due: due,
+ time: '09:00',
  category: cat,
  priority: prio,
  recur: sh.recur||'',
@@ -3536,6 +3716,7 @@ function saveQuickAdd(){
  saveAll();
  closeQuickAdd();
  refreshCurrentView();
+ scheduleTaskNotification(newTask);
  showToast('Added to '+fmtDate(due),()=>{
  const i=tasks.findIndex(x=>x.id===newTask.id);
  if(i>=0){tasks.splice(i,1);saveAll();refreshCurrentView();}
@@ -4100,6 +4281,7 @@ function quickSaveAs(kind){
  const newTask={
  text: text,
  due: sh.due || due,
+ time: '09:00',
  category: sh.category || '',
  priority: sh.priority || 'med',
  recur: sh.recur || '',
@@ -4114,15 +4296,17 @@ function quickSaveAs(kind){
  addMsg(text,'user');
  const dueText = newTask.due ? fmtDate(newTask.due) : 'no date';
  addMsg(`Added task: <b>${esc(text)}</b> (${dueText})`);
+ scheduleTaskNotification(newTask);
  showToast(`Added - ${dueText}`,()=>{
  const i=tasks.findIndex(x=>x.id===newTask.id);
  if(i>=0){tasks.splice(i,1);saveAll();updateSub();}
  });
 }
 
-// Run notification check on boot (if granted) and every 30 mins
+// Run notification check on boot (if granted) and use settings-based interval
 runNotificationCheck();
-setInterval(runNotificationCheck, 30*60*1000);
+const settings = getAlertSettings();
+window.notifCheckInterval = setInterval(runNotificationCheck, settings.checkFreq * 60 * 1000);
 // Also run when tab becomes visible
 document.addEventListener('visibilitychange',()=>{if(!document.hidden) runNotificationCheck();});
 
